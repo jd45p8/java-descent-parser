@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.descentparser.vices;
-
-import java.util.ArrayList;
+package com.descentparser.tools;
 
 /**
  *
  * @author José Polo <Github https://github.com/jd45p8>
  */
-public class recursion {
-    
-    public static boolean hasLeftRecursion(ArrayList<String> grammar){
+public class simbolTools {
+    public static boolean isTerminal(String simbol){
+        if (simbol.toUpperCase().compareTo(simbol) == 0){
+            return true;
+        }
         return false;
-    }
-    
-    public static void main(String args[]){
-        ArrayList<String> grammar = new ArrayList();
-        grammar.add("E->E+T");
-        grammar.add("E->E-T");
-        grammar.add("E->T");
-        grammar.add("T->T*F");
-        grammar.add("T->F/F");
-        grammar.add("T->F");
-        grammar.add("F->(E)");
-        grammar.add("F->id");
-        hasLeftRecursion(grammar);
     }
 }
