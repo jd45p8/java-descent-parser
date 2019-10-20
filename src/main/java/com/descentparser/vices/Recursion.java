@@ -20,16 +20,16 @@ import com.descentparser.grammar.Head;
 import java.util.ArrayList;
 
 /**
- * Contains tools for detecting and solving productions(Head) left recursion.
+ * Contains tools for detecting and solving productions(in Head) left recursion.
  *
  * @author José Polo <Github https://github.com/jd45p8>
  */
 public class Recursion {
 
     /**
-     * Determines whether or not productions of head has left side recursion.
+     * Determines whether productions in head have left side recursion.
      *
-     * @param head Head to be analyzed looking for left side recursion.
+     * @param head Head to be analyzed looking for left side recursion in its productions.
      * @return true if head productions has left side recursion.
      */
     public static boolean hasLeftRecursion(Head head) {
@@ -50,7 +50,7 @@ public class Recursion {
      * Removes left side recursion from head productions in a new array list.
      *
      * @param head Head whose productions has left side recursion.
-     * @return Heads list result of removing head left side recursion.
+     * @return Heads list as result of removing head left side recursion.
      */
     public static ArrayList<Head> removeLeftSideRecursion(Head head) {
         String simbol = head.getSimbol();
@@ -59,9 +59,9 @@ public class Recursion {
 
         head.getProductions().forEach((production) -> {
             if (production.substring(0, simbol.length()).compareTo(simbol) == 0) {
-                Asec.addProduction(production.substring(simbol.length()) + simbol + "'");
+                Asec.addProduction(production.substring(simbol.length()) + Asec.getSimbol());
             } else {
-                A.addProduction(production + simbol + "'");
+                A.addProduction(production + Asec.getSimbol());
             }
         });
         Asec.addProduction("&");

@@ -17,25 +17,34 @@ package com.descentparser.vices;
 
 import com.descentparser.grammar.Grammar;
 import com.descentparser.grammar.Head;
-import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
 
 /**
+ * Contains tools for detectiong and solving productions(in Head) left
+ * factoring.
  *
  * @author José Polo <Github https://github.com/jd45p8>
  */
 public class Factoring {
 
+    /**
+     * Determines whether productions in head have left side factoring.
+     *
+     * @param head Head whose productions are going to be analyzed looking for
+     * left side factoring.
+     * @return true if head productions have left side factoring.
+     */
     public static boolean hasLeftFactorig(Head head) {
         ArrayList<String> productions = head.getProductions();
         productions.sort((prod1, prod2) -> {
             return prod1.compareTo(prod2);
         });
 
+        String simbol = head.getSimbol();
         int i = 1;
         while (i < productions.size()) {
             if (productions.get(i).charAt(0) == productions.get(i - 1).charAt(0)) {
-                if (!simbolTools.isTerminal(productions.get(i).substring(0, 1))) {
+                if (productions.get(i).substring(0, simbol.length()).compareTo(simbol) != 0) {
                     return true;
                 }
             }
@@ -44,20 +53,95 @@ public class Factoring {
         return false;
     }
 
+    /**
+     * Removes left side factoring vice from head productions.
+     *
+     * @param head Head whose productions have left side factoring vice.
+     * @return Heads list as result of removing head left side factoring.
+     */
+    public static ArrayList<Head> removeLeftSideRecursion(Head head) {
+        ArrayList<String> productions = head.getProductions();
+        productions.sort((prod1, prod2) -> {
+            return prod1.compareTo(prod2);
+        });
+        int matchStrIndex = 1;
+        int firstMatchProd = 0;
+        int matchProdCount = 1;
+        int i = 1;
+        while (i < productions.size()) {
+            if (matchStrIndex <= productions.get(i).length()
+                    && matchStrIndex <= productions.get(i - 1).length()) {
+                String subS1 = productions.get(i - 1).substring(0, matchStrIndex);
+                String subS2 = productions.get(i).substring(0, matchStrIndex);
+
+                /**
+                 * If the first simbol of both subtrings is the same but is the
+                 * same head simbol it isn't left factoring vice.
+                 */
+                if (subS1.compareTo(subS2) == 0 && subS1.substring(0, 1).compareTo(head.getSimbol()) != 0) {
+                    if (matchStrIndex == 1) {
+                        matchProdCount++;
+                    }
+                    if (i == productions.size() - 1) {
+                        matchStrIndex++;
+                        i = firstMatchProd;
+                    }
+                } else if (matchProdCount == 1) {
+                    firstMatchProd++;
+                } else if (matchStrIndex == 1) {
+                    matchStrIndex++;
+                    i = firstMatchProd;
+                } else {
+                    matchStrIndex--;
+                    break;
+                }
+            } else if (matchProdCount == 1) {
+                firstMatchProd++;
+            } else {
+                matchStrIndex--;
+                break;
+            }
+            i++;
+        }
+
+        Head A = new Head(head.getSimbol());
+        Head Asec = new Head(head.getSimbol() + "'");
+
+        i = 0;
+        //Alpha is the common substring.
+        A.addProduction(productions.get(firstMatchProd).substring(0, matchStrIndex) + Asec.getSimbol());
+        while (i < productions.size()) {
+            //Is gamma if doesn't match with the commmon string.
+            if (i < firstMatchProd || i >= firstMatchProd + matchProdCount) {
+                A.addProduction(productions.get(i));
+            } else {
+                String subs = productions.get(i).substring(matchStrIndex);
+                Asec.addProduction(subs.isEmpty() ? "&" : subs);
+            }
+            i++;
+        }
+
+        ArrayList<Head> result = new ArrayList();
+        result.add(A);
+        result.add(Asec);
+        return result;
+    }
+
     public static void main(String args[]) {
         ArrayList<String> productions = new ArrayList();
-        productions.add("E->T");
-        productions.add("E->E+T");
-        productions.add("E->E-T");        
-        productions.add("T->T*F");
-        productions.add("T->T/F");
-        productions.add("T->F");
-        productions.add("F->(E)");
-        productions.add("F->id");
+        productions.add("P->iEtP");
+        productions.add("P->iEtPeP");
+        productions.add("P->a");
+        productions.add("E->b");
         Grammar g = new Grammar(productions);
         g.heads.forEach((head) -> {
-            boolean leftFactoring = hasLeftFactorig(head);
-            System.out.println(head.toString() + " - leftfactoring: " + leftFactoring);
+            if (hasLeftFactorig(head)) {
+                removeLeftSideRecursion(head).forEach(headTmp -> {
+                    System.out.println(headTmp.toString());
+                });
+            } else {
+                System.out.println(head.toString());
+            }
         });
     }
 }

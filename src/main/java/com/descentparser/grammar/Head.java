@@ -76,7 +76,7 @@ public class Head {
                     productions.add(prodParts[1]);
                 }
             }
-        } else if (!production.isEmpty()) {
+        } else {
             boolean founded = false;
             int i = 0;
             while (i < productions.size()) {

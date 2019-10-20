@@ -36,7 +36,7 @@ public class Grammar {
         heads = new ArrayList();
         for (String production : productions) {
             String[] prodParts = production.split("->");
-            if (!prodParts[0].isEmpty() && simbolTools.isTerminal(prodParts[0])) {
+            if (!prodParts[0].isEmpty() && !simbolTools.isTerminal(prodParts[0])) {
                 if (prodParts.length > 1) {
                     int i = 0;
                     Head head = null;
