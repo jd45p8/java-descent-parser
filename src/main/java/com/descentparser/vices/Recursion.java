@@ -29,7 +29,8 @@ public class Recursion {
     /**
      * Determines whether productions in head have left side recursion.
      *
-     * @param head Head to be analyzed looking for left side recursion in its productions.
+     * @param head Head to be analyzed looking for left side recursion in its
+     * productions.
      * @return true if head productions has left side recursion.
      */
     public static boolean hasLeftRecursion(Head head) {

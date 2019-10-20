@@ -17,6 +17,8 @@ package com.descentparser.grammar;
 
 import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Represents a grammar structure with its productions.
@@ -36,10 +38,14 @@ public class Grammar {
         heads = new ArrayList();
         for (String production : productions) {
             String[] prodParts = production.split("->");
+
+            System.out.println(prodParts[0]);
+
             if (!prodParts[0].isEmpty() && !simbolTools.isTerminal(prodParts[0])) {
                 if (prodParts.length > 1) {
                     int i = 0;
                     Head head = null;
+
                     while (i < heads.size() && head == null) {
                         if (heads.get(i).getSimbol().compareTo(prodParts[0]) == 0) {
                             head = heads.get(i);
@@ -47,10 +53,12 @@ public class Grammar {
                         }
                         i++;
                     }
+
                     if (head == null) {
                         head = new Head(prodParts[0]);
                         heads.add(head);
                     }
+
                     head.addProduction(prodParts[1]);
                 } else {
                     // Removes all elements from head list if a production is misshapen.
@@ -64,4 +72,40 @@ public class Grammar {
             }
         }
     }
+
+    /**
+     * Generate PRIMERO.
+     */
+    public void generatePRIMERO() {
+        for (Head head : this.heads) {
+            head.setPRIM(generatePRIMOfAlpha(head.getSimbol()));
+        }
+    }
+
+    private ArrayList<String> generatePRIMOfAlpha(String alpha) {
+        ArrayList<String> PRIM = new ArrayList<>();
+
+        for (Head head : this.heads) {
+            if (head.getSimbol().compareTo(alpha) == 0) {
+
+                for (String production : head.getProductions()) {
+                    String firstSymbol = production.charAt(0) + "";
+
+                    if (simbolTools.isTerminal(firstSymbol)) {
+                        PRIM.add(firstSymbol);
+                    } else {
+                        PRIM.addAll(generatePRIMOfAlpha(firstSymbol));
+                    }
+                }
+
+                break;
+            }
+        }
+
+        return PRIM;
+    }
+
+    public void generateSIGUIENTE() {
+    }
+
 }
