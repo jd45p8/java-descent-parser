@@ -22,7 +22,7 @@ package com.descentparser.tools;
 public class simbolTools {
     public static boolean isTerminal(String simbol){
         if (simbol.toUpperCase().compareTo(simbol) == 0){
-            return true;
+            return !(simbol.compareTo("->") == 0 || simbol.compareTo("&") == 0);
         }
         return false;
     }

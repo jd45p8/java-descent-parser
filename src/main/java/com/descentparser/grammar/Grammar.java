@@ -53,12 +53,12 @@ public class Grammar {
                     }
                     head.addProduction(prodParts[1]);
                 } else {
-                    // Removes all elements from head array if a production is misshapen.
+                    // Removes all elements from head list if a production is misshapen.
                     heads.clear();
                     break;
                 }
             } else {
-                // Removes all elements from head array if a production head simbol is lowercase.
+                // Removes all elements from head list if a production head simbol is lowercase.
                 heads.clear();
                 break;
             }

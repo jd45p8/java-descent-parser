@@ -21,26 +21,59 @@ import java.util.ArrayList;
 
 /**
  * Contains tools for detecting and solving productions(Head) left recursion.
+ *
  * @author José Polo <Github https://github.com/jd45p8>
  */
 public class Recursion {
-    
-    
-    public static boolean hasLeftRecursion(Head head){
+
+    /**
+     * Determines whether or not productions of head has left side recursion.
+     *
+     * @param head Head to be analyzed looking for left side recursion.
+     * @return true if head productions has left side recursion.
+     */
+    public static boolean hasLeftRecursion(Head head) {
         ArrayList<String> productions = head.getProductions();
         int i = 0;
         String simbol = head.getSimbol();
-        while (i < productions.size()){
+        while (i < productions.size()) {
             String production = productions.get(i);
-            if (production.substring(0,simbol.length()).compareTo(simbol) == 0){
+            if (production.substring(0, simbol.length()).compareTo(simbol) == 0) {
                 return true;
             }
             i++;
         }
         return false;
     }
-    
-    public static void main(String args[]){
+
+    /**
+     * Removes left side recursion from head productions in a new array list.
+     *
+     * @param head Head whose productions has left side recursion.
+     * @return Heads list result of removing head left side recursion.
+     */
+    public static ArrayList<Head> removeLeftSideRecursion(Head head) {
+        String simbol = head.getSimbol();
+        Head A = new Head(simbol);
+        Head Asec = new Head(simbol + "'");
+
+        head.getProductions().forEach((production) -> {
+            if (production.substring(0, simbol.length()).compareTo(simbol) == 0) {
+                Asec.addProduction(production.substring(simbol.length()) + simbol + "'");
+            } else {
+                A.addProduction(production + simbol + "'");
+            }
+        });
+        Asec.addProduction("&");
+
+        ArrayList<Head> result = new ArrayList();
+        result.add(A);
+        result.add(Asec);
+
+        return result;
+    }
+
+    public static void main(String args[]) {
         ArrayList<String> productions = new ArrayList();
         productions.add("E->E+T");
         productions.add("E->E-T");
@@ -52,7 +85,13 @@ public class Recursion {
         productions.add("F->id");
         Grammar g = new Grammar(productions);
         g.heads.forEach((head) -> {
-            System.out.println(head.toString() + " - " + "leftRecursion: " + hasLeftRecursion(head));
+            if (hasLeftRecursion(head)) {
+                removeLeftSideRecursion(head).forEach(tempHead -> {
+                    System.out.println(tempHead.toString());
+                });
+            } else {
+                System.out.println(head.toString());
+            }
         });
     }
 }
