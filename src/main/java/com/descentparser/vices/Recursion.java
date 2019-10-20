@@ -85,7 +85,7 @@ public class Recursion {
         productions.add("F->(E)");
         productions.add("F->id");
         Grammar g = new Grammar(productions);
-        g.heads.forEach((head) -> {
+        g.heads.values().forEach((head) -> {
             if (hasLeftRecursion(head)) {
                 removeLeftSideRecursion(head).forEach(tempHead -> {
                     System.out.println(tempHead.toString());

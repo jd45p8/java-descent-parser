@@ -27,6 +27,7 @@ public class Head {
     private final String simbol;
     private final ArrayList<String> productions;
     private ArrayList<String> PRIM;
+    private final ArrayList<String> next;
 
     /**
      * Head builder.
@@ -35,8 +36,9 @@ public class Head {
      */
     public Head(String simbol) {
         this.simbol = simbol;
-        this.productions = new ArrayList<>();
-        this.PRIM = new ArrayList<>();
+        this.productions = new ArrayList();
+        this.PRIM = new ArrayList();
+        this.next = new ArrayList();
     }
 
     /**
@@ -66,7 +68,7 @@ public class Head {
     }
 
     /**
-     * Format a production and adds it to productions array.
+     * Format a production and adds it to productions list.
      *
      * @param production Productions array.
      */
@@ -100,7 +102,7 @@ public class Head {
             }
         }
     }
-
+    
     @Override
     public String toString() {
         String result = simbol + "->";

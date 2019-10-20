@@ -134,7 +134,7 @@ public class Factoring {
         productions.add("P->a");
         productions.add("E->b");
         Grammar g = new Grammar(productions);
-        g.heads.forEach((head) -> {
+        g.heads.values().forEach((head) -> {
             if (hasLeftFactorig(head)) {
                 removeLeftSideRecursion(head).forEach(headTmp -> {
                     System.out.println(headTmp.toString());
