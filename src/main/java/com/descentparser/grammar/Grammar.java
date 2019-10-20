@@ -19,6 +19,7 @@ import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Represents a grammar structure with its productions.
@@ -28,6 +29,7 @@ import java.util.HashMap;
 public class Grammar {
 
     public final ArrayList<Head> heads;
+    public String[][] MTable;
 
     /**
      * Grammar builder.
@@ -92,6 +94,11 @@ public class Grammar {
                     if (simbolTools.isTerminal(firstSymbol)) {
                         PRIM.add(firstSymbol);
                     } else {
+
+                        if (firstSymbol.compareTo(head.getSimbol()) == 0) {
+                            continue;
+                        }
+                        
                         PRIM.addAll(generatePRIMOfAlpha(firstSymbol));
                     }
                 }
