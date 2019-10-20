@@ -17,7 +17,6 @@ package com.descentparser.grammar;
 
 import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -28,8 +27,8 @@ import java.util.Set;
  */
 public class Grammar {
 
-    public final ArrayList<Head> heads;
     public String[][] MTable;
+    public final HashMap<String, Head> heads;
 
     /**
      * Grammar builder.
@@ -37,26 +36,18 @@ public class Grammar {
      * @param productions
      */
     public Grammar(ArrayList<String> productions) {
-        heads = new ArrayList();
+        heads = new HashMap();
         for (String production : productions) {
             String[] prodParts = production.split("->");
 
             if (!prodParts[0].isEmpty() && !simbolTools.isTerminal(prodParts[0])) {
                 if (prodParts.length > 1) {
                     int i = 0;
-                    Head head = null;
-
-                    while (i < heads.size() && head == null) {
-                        if (heads.get(i).getSimbol().compareTo(prodParts[0]) == 0) {
-                            head = heads.get(i);
-                            break;
-                        }
-                        i++;
-                    }
+                    Head head = heads.get(prodParts[0]);
 
                     if (head == null) {
                         head = new Head(prodParts[0]);
-                        heads.add(head);
+                        heads.put(prodParts[0], head);
                     }
 
                     head.addProduction(prodParts[1]);
@@ -77,7 +68,7 @@ public class Grammar {
      * Generate PRIMERO.
      */
     public void generatePRIMERO() {
-        for (Head head : this.heads) {
+        for (Head head : this.heads.values()) {
             head.setPRIM(generatePRIMOfAlpha(head.getSimbol()));
         }
     }
@@ -85,7 +76,7 @@ public class Grammar {
     private ArrayList<String> generatePRIMOfAlpha(String alpha) {
         ArrayList<String> PRIM = new ArrayList<>();
 
-        for (Head head : this.heads) {
+        for (Head head : this.heads.values()) {
             if (head.getSimbol().compareTo(alpha) == 0) {
 
                 for (String production : head.getProductions()) {
@@ -98,7 +89,7 @@ public class Grammar {
                         if (firstSymbol.compareTo(head.getSimbol()) == 0) {
                             continue;
                         }
-                        
+
                         PRIM.addAll(generatePRIMOfAlpha(firstSymbol));
                     }
                 }
@@ -110,7 +101,7 @@ public class Grammar {
         return PRIM;
     }
 
-    public void generateSIGUIENTE() {
-    }
+    public void getNextOfAll(Head head, HashMap<String, ArrayList<String>> nextOfG) {
 
+    }
 }
