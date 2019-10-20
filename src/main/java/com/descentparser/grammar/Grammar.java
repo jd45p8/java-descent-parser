@@ -39,8 +39,6 @@ public class Grammar {
         for (String production : productions) {
             String[] prodParts = production.split("->");
 
-            System.out.println(prodParts[0]);
-
             if (!prodParts[0].isEmpty() && !simbolTools.isTerminal(prodParts[0])) {
                 if (prodParts.length > 1) {
                     int i = 0;
