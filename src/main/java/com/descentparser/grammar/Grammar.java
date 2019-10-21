@@ -17,7 +17,6 @@ package com.descentparser.grammar;
 
 import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +32,9 @@ public class Grammar {
     public final HashMap<String, Head> heads;
     public HashMap<String, Set<String>> PRIM;
 
+    public final ArrayList<String> nonTerminalSymbols;
+    public final ArrayList<String> terminalSymbols;
+
     /**
      * Grammar builder.
      *
@@ -40,6 +42,10 @@ public class Grammar {
      */
     public Grammar(ArrayList<String> productions) {
         heads = new HashMap();
+
+        nonTerminalSymbols = new ArrayList<>();
+        terminalSymbols = new ArrayList<>();
+
         for (String production : productions) {
             String[] prodParts = production.split("->");
 
@@ -51,9 +57,11 @@ public class Grammar {
                     if (head == null) {
                         head = new Head(prodParts[0]);
                         heads.put(prodParts[0], head);
+                        nonTerminalSymbols.add(prodParts[0]);
                     }
 
                     head.addProduction(prodParts[1]);
+
                 } else {
                     // Removes all elements from head list if a production is misshapen.
                     heads.clear();
@@ -66,21 +74,41 @@ public class Grammar {
             }
         }
 
+        /**
+         * Get all non terminal symbols.
+         */
+        this.nonTerminalSymbols.stream().forEachOrdered((String k) -> {
+            Head h = this.heads.get(k);
+            h.getProductions().stream().forEachOrdered((String p) -> {
+                String[] chars = p.split("");
+                for (String c : chars) {
+                    if (c.compareTo("&") != 0 && simbolTools.isTerminal(c) && !terminalSymbols.contains(c)) {
+                        terminalSymbols.add(c);
+                    }
+                }
+
+            });
+        });
+
+        this.generatePRIMERO();
+        this.generateMTable();
     }
 
     /**
      * Generate PRIMERO.
      */
-    public void generatePRIMERO() {
+    private void generatePRIMERO() {
         PRIM = new HashMap<>();
 
+        /**
+         * Loop over all heads and get the first symbol of every productions.
+         */
         heads.values().forEach((Head h) -> {
             Set<String> p = new HashSet<>();
 
-            h.getProductions()
-                    .stream()
-                    .map((production) -> production.charAt(0) + "")
-                    .forEachOrdered((firstSymbol) -> {
+            h.getProductions().stream()
+                    .forEachOrdered((production) -> {
+                        String firstSymbol = production.charAt(0) + "";
                         p.add(firstSymbol);
                     });
 
@@ -89,16 +117,16 @@ public class Grammar {
 
         HashMap<String, Boolean> marked = new HashMap<>();
 
+        /**
+         * Replace the non-terminal symbols in the TRIM hashmap.
+         */
         PRIM.keySet().stream().forEachOrdered((String a) -> {
             marked.put(a, Boolean.TRUE);
-
-            PRIM.values()
-                    .stream()
+            PRIM.values().stream()
                     .filter((bSet) -> (bSet.contains(a)))
                     .forEachOrdered((bSet) -> {
                         bSet.remove(a);
-                        PRIM.get(a)
-                                .stream()
+                        PRIM.get(a).stream()
                                 .filter((String str) -> !marked.containsKey(str))
                                 .forEach((String str) -> bSet.add(str));
                     });
@@ -107,5 +135,42 @@ public class Grammar {
 
     public void getNextOfAll(Head head, HashMap<String, ArrayList<String>> nextOfG) {
 
+    }
+
+    /**
+     * Generate the MTable.
+     */
+    private void generateMTable() {
+        this.MTable = new String[this.nonTerminalSymbols.size()][this.terminalSymbols.size() + 1];
+
+        /**
+         * Loop over all non terminal symbols.
+         */
+        this.nonTerminalSymbols.stream().forEachOrdered((String key) -> {
+
+            /**
+             * Loop over the productions.
+             */
+            this.heads.get(key).getProductions().stream().forEachOrdered((String prod) -> {
+
+                if (prod.compareTo("&") == 0) {
+                    // TODO   Usar SIGUIENTE
+                } else {
+                    String firstSymbol = prod.charAt(0) + "";
+                    if (this.PRIM.containsKey(firstSymbol)) {
+
+                        this.PRIM.get(firstSymbol).stream().forEachOrdered((String p) -> {
+                            if (MTable[this.nonTerminalSymbols.indexOf(key)][this.terminalSymbols.indexOf(p)] == null) {
+                                MTable[this.nonTerminalSymbols.indexOf(key)][this.terminalSymbols.indexOf(p)] = prod;
+                            }
+                        });
+                    } else {
+                        MTable[this.nonTerminalSymbols.indexOf(key)][this.terminalSymbols.indexOf(firstSymbol)] = prod;
+                    }
+                }
+
+            });
+
+        });
     }
 }
