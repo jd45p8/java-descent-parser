@@ -17,6 +17,7 @@ package com.descentparser.grammar;
 
 import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -73,7 +74,7 @@ public class Grammar {
     public void generatePRIMERO() {
         PRIM = new HashMap<>();
 
-        for (Head h : this.heads.values()) {
+        heads.values().forEach((Head h) -> {
             Set<String> p = new HashSet<>();
 
             h.getProductions()
@@ -84,27 +85,24 @@ public class Grammar {
                     });
 
             PRIM.put(h.getSimbol(), p);
-        }
+        });
 
         HashMap<String, Boolean> marked = new HashMap<>();
-                
-        for (String a : PRIM.keySet()) {
+
+        PRIM.keySet().stream().forEachOrdered((String a) -> {
             marked.put(a, Boolean.TRUE);
-            
-            for (Set<String> bSet : PRIM.values()) {
-                if (bSet.contains(a)) {
-                    bSet.remove(a);
-                    
-                    
-                    for (String temp : PRIM.get(a)) {
-                        if (!marked.containsKey(temp)) {
-                            bSet.add(temp);
-                        }
-                    }
-                    //bSet.addAll(PRIM.get(a));
-                }
-            }
-        }
+
+            PRIM.values()
+                    .stream()
+                    .filter((bSet) -> (bSet.contains(a)))
+                    .forEachOrdered((bSet) -> {
+                        bSet.remove(a);
+                        PRIM.get(a)
+                                .stream()
+                                .filter((String str) -> !marked.containsKey(str))
+                                .forEach((String str) -> bSet.add(str));
+                    });
+        });
     }
 
     public void getNextOfAll(Head head, HashMap<String, ArrayList<String>> nextOfG) {
