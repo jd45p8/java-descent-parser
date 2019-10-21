@@ -18,6 +18,7 @@ package com.descentparser.grammar;
 import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -29,6 +30,7 @@ public class Grammar {
 
     public String[][] MTable;
     public final HashMap<String, Head> heads;
+    public HashMap<String, Set<String>> PRIM;
 
     /**
      * Grammar builder.
@@ -62,43 +64,47 @@ public class Grammar {
                 break;
             }
         }
+
     }
 
     /**
      * Generate PRIMERO.
      */
     public void generatePRIMERO() {
-        for (Head head : this.heads.values()) {
-            head.setPRIM(generatePRIMOfAlpha(head.getSimbol()));
+        PRIM = new HashMap<>();
+
+        for (Head h : this.heads.values()) {
+            Set<String> p = new HashSet<>();
+
+            h.getProductions()
+                    .stream()
+                    .map((production) -> production.charAt(0) + "")
+                    .forEachOrdered((firstSymbol) -> {
+                        p.add(firstSymbol);
+                    });
+
+            PRIM.put(h.getSimbol(), p);
         }
-    }
 
-    private ArrayList<String> generatePRIMOfAlpha(String alpha) {
-        ArrayList<String> PRIM = new ArrayList<>();
-
-        for (Head head : this.heads.values()) {
-            if (head.getSimbol().compareTo(alpha) == 0) {
-
-                for (String production : head.getProductions()) {
-                    String firstSymbol = production.charAt(0) + "";
-
-                    if (simbolTools.isTerminal(firstSymbol)) {
-                        PRIM.add(firstSymbol);
-                    } else {
-
-                        if (firstSymbol.compareTo(head.getSimbol()) == 0) {
-                            continue;
+        HashMap<String, Boolean> marked = new HashMap<>();
+                
+        for (String a : PRIM.keySet()) {
+            marked.put(a, Boolean.TRUE);
+            
+            for (Set<String> bSet : PRIM.values()) {
+                if (bSet.contains(a)) {
+                    bSet.remove(a);
+                    
+                    
+                    for (String temp : PRIM.get(a)) {
+                        if (!marked.containsKey(temp)) {
+                            bSet.add(temp);
                         }
-
-                        PRIM.addAll(generatePRIMOfAlpha(firstSymbol));
                     }
+                    //bSet.addAll(PRIM.get(a));
                 }
-
-                break;
             }
         }
-
-        return PRIM;
     }
 
     public void getNextOfAll(Head head, HashMap<String, ArrayList<String>> nextOfG) {

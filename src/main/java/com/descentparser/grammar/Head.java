@@ -26,7 +26,6 @@ public class Head {
 
     private final String simbol;
     private final ArrayList<String> productions;
-    private ArrayList<String> PRIM;
     private final ArrayList<String> next;
 
     /**
@@ -37,7 +36,6 @@ public class Head {
     public Head(String simbol) {
         this.simbol = simbol;
         this.productions = new ArrayList();
-        this.PRIM = new ArrayList();
         this.next = new ArrayList();
     }
 
@@ -57,14 +55,6 @@ public class Head {
      */
     public ArrayList<String> getProductions() {
         return productions;
-    }
-
-    public ArrayList<String> getPRIM() {
-        return PRIM;
-    }
-
-    public void setPRIM(ArrayList<String> PRIM) {
-        this.PRIM = PRIM;
     }
 
     /**
@@ -102,7 +92,7 @@ public class Head {
             }
         }
     }
-    
+
     @Override
     public String toString() {
         String result = simbol + "->";
