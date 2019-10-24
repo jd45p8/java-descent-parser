@@ -17,6 +17,7 @@ package com.descentparser.grammar;
 
 import com.descentparser.tools.simbolTools;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -131,6 +132,22 @@ public class Grammar {
                                 .forEach((String str) -> bSet.add(str));
                     });
         });
+    }
+
+    /**
+     * Find the PRIMERO of a word.
+     *
+     * @param w
+     * @return
+     */
+    public ArrayList<String> PRIMOfWord(String w) {
+        String firstSymbol = w.charAt(0) + "";
+
+        if (this.heads.containsKey(firstSymbol)) {
+            return new ArrayList<>(this.PRIM.get(firstSymbol));
+        }
+
+        return new ArrayList<>(Arrays.asList(firstSymbol));
     }
 
     public void getNextOfAll(Head head, HashMap<String, ArrayList<String>> nextOfG) {
