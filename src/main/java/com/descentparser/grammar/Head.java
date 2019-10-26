@@ -25,7 +25,8 @@ import java.util.ArrayList;
 public class Head {
 
     private final String simbol;
-    private final ArrayList<String> productions;
+    private final ArrayList<Production> productions;
+    private ArrayList<String> PRIM;
     private final ArrayList<String> next;
 
     /**
@@ -53,18 +54,30 @@ public class Head {
      *
      * @return Productions list without Head.
      */
-    public ArrayList<String> getProductions() {
+    public ArrayList<Production> getProductions() {
         return productions;
     }
+
+    public ArrayList<String> getPRIM() {
+        return PRIM;
+    }
+
+    public void setPRIM(ArrayList<String> PRIM) {
+        this.PRIM = PRIM;
+    }
+
+    public ArrayList<String> getNext() {
+        return next;
+    } 
 
     /**
      * Format a production and adds it to productions list.
      *
-     * @param production Productions array.
+     * @param alpha production to add.
      */
-    public void addProduction(String production) {
-        if (production.contains("->")) {
-            String[] prodParts = production.split("->");
+    public void addProduction(String alpha) {
+        if (alpha.contains("->")) {
+            String[] prodParts = alpha.split("->");
             if (prodParts[0].compareTo(prodParts[0]) == 0 && !prodParts[1].isEmpty()) {
                 boolean founded = false;
                 int i = 0;
@@ -75,22 +88,32 @@ public class Head {
                     i++;
                 }
                 if (!founded) {
-                    productions.add(prodParts[1]);
+                    productions.add(new Production(prodParts[1]));
                 }
             }
         } else {
             boolean founded = false;
             int i = 0;
             while (i < productions.size()) {
-                if (productions.get(i).compareTo(production) == 0) {
+                if (productions.get(i).compareTo(alpha) == 0) {
                     founded = true;
                 }
                 i++;
             }
             if (!founded) {
-                productions.add(production);
+                productions.add(new Production(alpha));
             }
         }
+    }
+
+    /**
+     * Insert a production in productions list, you must ensure it is a valid
+     * production, without "->".
+     *
+     * @param production Production to add.
+     */
+    public void addProduction(Production production) {
+        productions.add(production);
     }
 
     @Override

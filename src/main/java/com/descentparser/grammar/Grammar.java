@@ -15,7 +15,8 @@
  */
 package com.descentparser.grammar;
 
-import com.descentparser.tools.simbolTools;
+import com.descentparser.tools.NullableStatus;
+import com.descentparser.tools.symbolTools;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,11 +29,9 @@ import java.util.Set;
  * @author José Polo <Github https://github.com/jd45p8>
  */
 public class Grammar {
-
-    public String[][] MTable;
+    public Production[][] MTable;
     public final HashMap<String, Head> heads;
     public HashMap<String, Set<String>> PRIM;
-
     public final ArrayList<String> nonTerminalSymbols;
     public final ArrayList<String> terminalSymbols;
 
@@ -43,16 +42,14 @@ public class Grammar {
      */
     public Grammar(ArrayList<String> productions) {
         heads = new HashMap();
-
         nonTerminalSymbols = new ArrayList<>();
         terminalSymbols = new ArrayList<>();
 
-        for (String production : productions) {
-            String[] prodParts = production.split("->");
+        for (String alpha : productions) {
+            String[] prodParts = alpha.split("->");
 
-            if (!prodParts[0].isEmpty() && !simbolTools.isTerminal(prodParts[0])) {
+            if (prodParts[0].length() == 1 && symbolTools.isTerminal(prodParts[0])) {
                 if (prodParts.length > 1) {
-                    int i = 0;
                     Head head = heads.get(prodParts[0]);
 
                     if (head == null) {
@@ -80,10 +77,10 @@ public class Grammar {
          */
         this.nonTerminalSymbols.stream().forEachOrdered((String k) -> {
             Head h = this.heads.get(k);
-            h.getProductions().stream().forEachOrdered((String p) -> {
-                String[] chars = p.split("");
+            h.getProductions().stream().forEachOrdered( (Production p) -> {
+                String[] chars = p.alpha.split("");
                 for (String c : chars) {
-                    if (c.compareTo("&") != 0 && simbolTools.isTerminal(c) && !terminalSymbols.contains(c)) {
+                    if (c.compareTo("&") != 0 && symbolTools.isTerminal(c) && !terminalSymbols.contains(c)) {
                         terminalSymbols.add(c);
                     }
                 }
@@ -105,15 +102,15 @@ public class Grammar {
          * Loop over all heads and get the first symbol of every productions.
          */
         heads.values().forEach((Head h) -> {
-            Set<String> p = new HashSet<>();
+            Set<String> first = new HashSet<>();
 
             h.getProductions().stream()
-                    .forEachOrdered((production) -> {
-                        String firstSymbol = production.charAt(0) + "";
-                        p.add(firstSymbol);
+                    .forEachOrdered((Production p) -> {
+                        String firstSymbol = p.alpha.charAt(0) + "";
+                        first.add(firstSymbol);
                     });
 
-            PRIM.put(h.getSimbol(), p);
+            PRIM.put(h.getSimbol(), first);
         });
 
         HashMap<String, Boolean> marked = new HashMap<>();
@@ -150,15 +147,11 @@ public class Grammar {
         return new ArrayList<>(Arrays.asList(firstSymbol));
     }
 
-    public void getNextOfAll(Head head, HashMap<String, ArrayList<String>> nextOfG) {
-
-    }
-
     /**
      * Generate the MTable.
      */
     private void generateMTable() {
-        this.MTable = new String[this.nonTerminalSymbols.size()][this.terminalSymbols.size() + 1];
+        this.MTable = new Production[this.nonTerminalSymbols.size()][this.terminalSymbols.size() + 1];
 
         /**
          * Loop over all non terminal symbols.
@@ -168,12 +161,12 @@ public class Grammar {
             /**
              * Loop over the productions.
              */
-            this.heads.get(key).getProductions().stream().forEachOrdered((String prod) -> {
+            this.heads.get(key).getProductions().stream().forEachOrdered((Production prod) -> {
 
                 if (prod.compareTo("&") == 0) {
                     // TODO   Usar SIGUIENTE
                 } else {
-                    String firstSymbol = prod.charAt(0) + "";
+                    String firstSymbol = prod.alpha.charAt(0) + "";
                     if (this.PRIM.containsKey(firstSymbol)) {
 
                         this.PRIM.get(firstSymbol).stream().forEachOrdered((String p) -> {
@@ -190,4 +183,139 @@ public class Grammar {
 
         });
     }
+
+    /**
+     * Looks for and set the next of every non terminal of the grammar.
+     */
+    public void generateNext() {
+        heads.values().forEach(head -> {
+            head.getProductions().forEach((production) -> {
+                heads.keySet().forEach((symbol) -> {
+                    if (production.alpha.contains(symbol)) {
+                        String[] prodSplit = production.alpha.split(symbol, 0);
+                        /**
+                         * If last part of vector is nullable means next of
+                         * simbol contains next of head symbol.
+                         */
+                        if (prodSplit.length == 1 || nullable(prodSplit[prodSplit.length - 1])) {
+                            ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
+                            if (!nxtOfSimbol.contains(head.getSimbol())) {
+                                nxtOfSimbol.add(head.getSimbol());
+                            }
+                        }
+
+                        /**
+                         * The first terminal rigth of symbol different to
+                         * epsilon is in next of symbol.
+                         */
+                        ArrayList<String> nxt = head.getNext();
+                        for (int i = 1; i < prodSplit.length - 1; i++) {
+                            String betha = prodSplit[i];
+                            ArrayList<String> prinOfBetha = PRIMOfWord(betha);
+                            prinOfBetha.forEach(item -> {
+                                if (item.compareTo("&") != 0) {
+                                    nxt.add(item);
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        });
+
+        boolean first = true;
+        heads.values().forEach(head -> {
+            ArrayList<String> nxt = head.getNext();
+            if (first) {
+                nxt.add("$");
+            }
+            boolean repeat;
+            do {
+                repeat = false;
+                for (String item: nxt) {
+                    if (!symbolTools.isTerminal(item)) {
+                        nxt.addAll(heads.get(item).getNext());
+                        repeat = true;
+                    }
+                }
+            } while (repeat);
+        });
+    }
+
+    /**
+     * Denermines whether alpha generates epsilon.
+     *
+     * @param alpha production to check nullability.
+     * @return true if alpha is nullable.
+     * @throws NullPointerException if simbol doen't exist in heads.
+     */
+    public boolean nullable(String alpha) throws NullPointerException {
+        int i = 0;
+        while (i < alpha.length()) {
+            if (!symbolTools.isTerminal(alpha.charAt(i))) {
+                Head head = heads.get(alpha.substring(i, i + 1));
+                if (head != null) {
+                    if (!nullable(head)) {
+                        return false;
+                    }
+                } else {
+                    throw new NullPointerException("Simbol " + alpha.charAt(i) + " not found.");
+                }
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Denermines whether the simbol generates epsilon.
+     *
+     * @param head production to check nullability.
+     * @return true if production is nullable.
+     * @throws NullPointerException if simbol doen't exist in heads.
+     */
+    public boolean nullable(Head head) throws NullPointerException {
+        ArrayList<Production> productions = head.getProductions();
+        int i = 0;
+        boolean isSomeOneCalculating = false;
+        while (i < productions.size()) {
+            Production p = productions.get(i);
+            switch (p.nullableStatus) {
+                case NotCalculated:
+                    p.nullableStatus = NullableStatus.Calculating;
+                    int j = 0;
+                    while (j < p.alpha.length()) {
+                        if (!symbolTools.isTerminal(p.alpha.charAt(i))) {
+                            Head nextHead = heads.get(p.alpha.substring(i, i + 1));
+                            if (nextHead != null) {
+                                if (nullable(nextHead)) {
+                                    p.nullableStatus = NullableStatus.Nullable;
+                                } else {
+                                    p.nullableStatus = NullableStatus.NotNullable;
+                                    return false;
+                                }
+                            } else {
+                                throw new NullPointerException("Simbol " + p.alpha.charAt(i) + " not found.");
+                            }
+                        } else if (p.alpha.charAt(i) != '&') {
+                            p.nullableStatus = NullableStatus.NotNullable;
+                            return false;
+                        }
+                    }
+                    break;
+                case Calculating:
+                    isSomeOneCalculating = true;
+                    break;
+                default:
+                    return p.nullableStatus == NullableStatus.Nullable;
+            }
+            i++;
+        }
+
+        return !isSomeOneCalculating;
+    }
+    
+    
+    
 }

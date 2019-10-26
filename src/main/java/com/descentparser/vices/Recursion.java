@@ -17,6 +17,8 @@ package com.descentparser.vices;
 
 import com.descentparser.grammar.Grammar;
 import com.descentparser.grammar.Head;
+import com.descentparser.grammar.Production;
+import com.descentparser.tools.symbolTools;
 import java.util.ArrayList;
 
 /**
@@ -34,12 +36,12 @@ public class Recursion {
      * @return true if head productions has left side recursion.
      */
     public static boolean hasLeftRecursion(Head head) {
-        ArrayList<String> productions = head.getProductions();
+        ArrayList<Production> productions = head.getProductions();
         int i = 0;
         String simbol = head.getSimbol();
         while (i < productions.size()) {
-            String production = productions.get(i);
-            if (production.substring(0, simbol.length()).compareTo(simbol) == 0) {
+            String alpha = productions.get(i).alpha;
+            if (alpha.substring(0, simbol.length()).compareTo(simbol) == 0) {
                 return true;
             }
             i++;
@@ -51,16 +53,17 @@ public class Recursion {
      * Removes left side recursion from head productions in a new array list.
      *
      * @param head Head whose productions has left side recursion.
+     * @param g Gramamr to which the head belongs.
      * @return Heads list as result of removing head left side recursion.
      */
-    public static ArrayList<Head> removeLeftSideRecursion(Head head) {
+    public static ArrayList<Head> removeLeftSideRecursion(Head head, Grammar g) {
         String simbol = head.getSimbol();
         Head A = new Head(simbol);
-        Head Asec = new Head(simbol + "'");
+        Head Asec = new Head(symbolTools.getUnusedUppercase(g));
 
         head.getProductions().forEach((production) -> {
-            if (production.substring(0, simbol.length()).compareTo(simbol) == 0) {
-                Asec.addProduction(production.substring(simbol.length()) + Asec.getSimbol());
+            if (production.alpha.substring(0, simbol.length()).compareTo(simbol) == 0) {
+                Asec.addProduction(production.alpha.substring(simbol.length()) + Asec.getSimbol());
             } else {
                 A.addProduction(production + Asec.getSimbol());
             }
@@ -87,7 +90,7 @@ public class Recursion {
         Grammar g = new Grammar(productions);
         g.heads.values().forEach((head) -> {
             if (hasLeftRecursion(head)) {
-                removeLeftSideRecursion(head).forEach(tempHead -> {
+                removeLeftSideRecursion(head,g).forEach(tempHead -> {
                     System.out.println(tempHead.toString());
                 });
             } else {

@@ -16,22 +16,12 @@
 package com.descentparser.tools;
 
 /**
- * A tool set for managing simbols.
- *
+ * Enum for distinguishing between statuses in nullable detection process.
  * @author José Polo <Github https://github.com/jd45p8>
  */
-public class simbolTools {
-
-    /**
-     * Determines whether the given simbol is terminal.
-     *
-     * @param simbol simbol to check out.
-     * @return true if given simbol is terminal.
-     */
-    public static boolean isTerminal(String simbol) {
-        if (simbol.toLowerCase().compareTo(simbol) == 0) {
-            return !(simbol.compareTo("->") == 0);
-        }
-        return false;
-    }
+public enum NullableStatus {
+    NotCalculated,
+    Calculating,
+    Nullable,
+    NotNullable    
 }
