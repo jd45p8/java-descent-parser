@@ -48,11 +48,15 @@ public class FileTools {
         return result;
     }
     
+    /**
+     * Request a file from user UI.
+     * @return the user selected file.
+     */
     public static File requestFile(){
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Plane text files", "*.txt"));
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Archivo de texto plano", "txt"));
         fileChooser.showDialog(null, "Seleccionar archivo");
         return fileChooser.getSelectedFile();
     }
