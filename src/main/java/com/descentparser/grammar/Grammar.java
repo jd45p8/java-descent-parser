@@ -235,7 +235,7 @@ public class Grammar {
                             String betha = prodSplit[i];
                             ArrayList<String> prinOfBetha = PRIMOfWord(betha);
                             prinOfBetha.forEach(item -> {
-                                if (item.compareTo("&") != 0) {
+                                if (item.compareTo("&") != 0 && !nxtOfSimbol.contains(item)) {
                                     nxtOfSimbol.add(item);
                                 }
                             });
@@ -254,7 +254,7 @@ public class Grammar {
             int i = 0;
             while (i < nxt.size()) {
                 String item = nxt.get(i);
-                if (!symbolTools.isTerminal(item)) {
+                if (symbolTools.isSymbolOf(item,this)) {
                     ArrayList<String> nxtOfItem = heads.get(item).getNext();
 
                     nxtOfItem.forEach(X -> {

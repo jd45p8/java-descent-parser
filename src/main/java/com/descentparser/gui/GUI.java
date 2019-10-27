@@ -288,21 +288,21 @@ public class GUI extends javax.swing.JFrame {
 
     private void analizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_analizeActionPerformed
         if (productions != null) {
-            grammar = new Grammar(productions);            
+            grammar = new Grammar(productions);
             grammar.processGrammar();
-            
+
             freeGrammarText.setText("");
-            DefaultTableModel model = (DefaultTableModel)firstNextTable.getModel();
+            DefaultTableModel model = (DefaultTableModel) firstNextTable.getModel();
             model.setRowCount(0);
-            
-            for (String A: grammar.nonTerminals){
+
+            grammar.nonTerminals.forEach(A -> {
                 Head head = grammar.heads.get(A);
                 freeGrammarText.append(head.toString());
-                model.addRow(new Object[] {
+                model.addRow(new Object[]{
                     head.getSymbol(),
                     head.getFirst(),
                     head.getNext()});
-            }
+            });
             noticeField.setText("¡Gramática procesada con éxito!");
         } else {
             noticeField.setText("¡Debe leer un archivo!");
@@ -318,16 +318,16 @@ public class GUI extends javax.swing.JFrame {
             } catch (IOException ex) {
                 productions = null;
             }
-            if (productions != null){
+            if (productions != null) {
                 grammarText.setText("");
                 productions.forEach(string -> {
                     grammarText.append(string + "\n");
                 });
                 noticeField.setText("¡Archivo leído con éxito!");
-            }else{
+            } else {
                 noticeField.setText("¡Problemas con el archivo!");
-            }            
-        }else{
+            }
+        } else {
             noticeField.setText("¡Problemas con el archivo!");
         }
     }//GEN-LAST:event_selectActionPerformed
