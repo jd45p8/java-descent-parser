@@ -22,8 +22,6 @@ import com.descentparser.vices.Recursion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Represents a grammar structure with its productions.
@@ -34,7 +32,6 @@ public class Grammar {
 
     public Production[][] MTable;
     public final HashMap<String, Head> heads;
-    public HashMap<String, Set<String>> PRIM;
     public final ArrayList<String> nonTerminals;
     public final ArrayList<String> terminalSymbols;
 
@@ -110,39 +107,51 @@ public class Grammar {
      * Generate PRIMERO.
      */
     private void generatePRIMERO() {
-        PRIM = new HashMap<>();
-
         /**
          * Loop over all heads and get the first symbol of every productions.
          */
         heads.values().forEach((Head h) -> {
-            Set<String> first = new HashSet<>();
+            ArrayList<String> first = h.getFirst();
 
             h.getProductions().stream()
                     .forEachOrdered((Production p) -> {
-                        String firstSymbol = p.alpha.charAt(0) + "";
-                        first.add(firstSymbol);
-                    });
-
-            PRIM.put(h.getSymbol(), first);
-        });
-
-        HashMap<String, Boolean> marked = new HashMap<>();
-
-        /**
-         * Replace the non-terminal symbols in the TRIM hashmap.
-         */
-        PRIM.keySet().stream().forEachOrdered((String a) -> {
-            marked.put(a, Boolean.TRUE);
-            PRIM.values().stream()
-                    .filter((bSet) -> (bSet.contains(a)))
-                    .forEachOrdered((bSet) -> {
-                        bSet.remove(a);
-                        PRIM.get(a).stream()
-                                .filter((String str) -> !marked.containsKey(str))
-                                .forEach((String str) -> bSet.add(str));
+                        int i = 0;
+                        String symbol;
+                        while (i < p.length()){
+                            symbol = p.alpha.substring(i,i+1);
+                            if (symbol.compareTo("&") != 0){
+                                first.add(symbol);
+                                break;
+                            }
+                            i++;
+                        }
+                        if (i == p.length()){
+                            first.add("&");
+                        }
                     });
         });
+
+        heads.values().forEach(head -> {
+            ArrayList<String> first = head.getFirst();
+            int i = 0;
+            while (i < first.size()) {
+                String item = first.get(i);
+                if (!symbolTools.isTerminal(item)) {
+                    ArrayList<String> firstOfItem = heads.get(item).getFirst();
+
+                    firstOfItem.forEach(X -> {
+                        if (first.contains(X) == false) {
+                            first.add(X);
+                        }
+                    });
+
+                    first.remove(i);
+                } else {
+                    i++;
+                }
+            }
+        });        
+        
     }
 
     /**
@@ -155,7 +164,7 @@ public class Grammar {
         String firstSymbol = w.charAt(0) + "";
 
         if (this.heads.containsKey(firstSymbol)) {
-            return new ArrayList<>(this.PRIM.get(firstSymbol));
+            return heads.get(firstSymbol).getFirst();
         }
 
         return new ArrayList<>(Arrays.asList(firstSymbol));
@@ -180,7 +189,7 @@ public class Grammar {
                 if (prod.compareTo("&") == 0) {
                     // TODO   Usar SIGUIENTE
                 } else {
-                    String firstSymbol = prod.alpha.charAt(0) + "";
+                    String firstSymbol = prod.alpha.substring(0,1);
                     if (this.PRIM.containsKey(firstSymbol)) {
 
                         this.PRIM.get(firstSymbol).stream().forEachOrdered((String p) -> {
@@ -211,9 +220,9 @@ public class Grammar {
                          * If last part of vector is nullable means next of
                          * simbol contains next of head symbol.
                          */
+                        ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
                         if (prodSplit.length == 1 || nullable(prodSplit[prodSplit.length - 1])) {
-                            ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
-                            if (!nxtOfSimbol.contains(head.getSymbol())) {
+                            if (!nxtOfSimbol.contains(head.getSymbol()) && symbol.compareTo(head.getSymbol()) != 0) {
                                 nxtOfSimbol.add(head.getSymbol());
                             }
                         }
@@ -222,13 +231,12 @@ public class Grammar {
                          * The first terminal rigth of symbol different to
                          * epsilon is in next of symbol.
                          */
-                        ArrayList<String> nxt = head.getNext();
-                        for (int i = 1; i < prodSplit.length - 1; i++) {
+                        for (int i = 1; i < prodSplit.length; i++) {
                             String betha = prodSplit[i];
                             ArrayList<String> prinOfBetha = PRIMOfWord(betha);
                             prinOfBetha.forEach(item -> {
                                 if (item.compareTo("&") != 0) {
-                                    nxt.add(item);
+                                    nxtOfSimbol.add(item);
                                 }
                             });
                         }
@@ -237,7 +245,30 @@ public class Grammar {
             });
         });
 
-       
+        boolean first = true;
+        heads.values().forEach(head -> {
+            ArrayList<String> nxt = head.getNext();
+            if (first) {
+                nxt.add("$");
+            }
+            int i = 0;
+            while (i < nxt.size()) {
+                String item = nxt.get(i);
+                if (!symbolTools.isTerminal(item)) {
+                    ArrayList<String> nxtOfItem = heads.get(item).getNext();
+
+                    nxtOfItem.forEach(X -> {
+                        if (nxt.contains(X) == false) {
+                            nxt.add(X);
+                        }
+                    });
+
+                    nxt.remove(i);
+                } else {
+                    i++;
+                }
+            }
+        });
     }
 
     /**

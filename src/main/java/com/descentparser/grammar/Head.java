@@ -26,7 +26,7 @@ public class Head {
 
     private final String simbol;
     private final ArrayList<Production> productions;
-    private ArrayList<String> PRIM;
+    private final ArrayList<String> first;
     private final ArrayList<String> next;
 
     /**
@@ -38,6 +38,7 @@ public class Head {
         this.simbol = symbol;
         this.productions = new ArrayList();
         this.next = new ArrayList();
+        this.first = new ArrayList();
     }
 
     /**
@@ -58,14 +59,14 @@ public class Head {
         return productions;
     }
 
-    public ArrayList<String> getPRIM() {
-        return PRIM;
+    public ArrayList<String> getFirst() {
+        return first;
     }
-
-    public void setPRIM(ArrayList<String> PRIM) {
-        this.PRIM = PRIM;
-    }
-
+    
+    /**
+     * Returns next list pointer.
+     * @return next list.
+     */
     public ArrayList<String> getNext() {
         return next;
     } 

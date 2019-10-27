@@ -300,7 +300,7 @@ public class GUI extends javax.swing.JFrame {
                 freeGrammarText.append(head.toString());
                 model.addRow(new Object[] {
                     head.getSymbol(),
-                    head.getPRIM(),
+                    head.getFirst(),
                     head.getNext()});
             }
             noticeField.setText("¡Gramática procesada con éxito!");
