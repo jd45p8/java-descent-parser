@@ -103,6 +103,7 @@ public class GUI extends javax.swing.JFrame {
 
         noticeField.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
 
+        grammarText.setEditable(false);
         grammarText.setColumns(20);
         grammarText.setRows(5);
         jScrollPane1.setViewportView(grammarText);
@@ -110,6 +111,7 @@ public class GUI extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel2.setText("Sin analizar");
 
+        freeGrammarText.setEditable(false);
         freeGrammarText.setColumns(20);
         freeGrammarText.setRows(5);
         jScrollPane2.setViewportView(freeGrammarText);
@@ -120,6 +122,7 @@ public class GUI extends javax.swing.JFrame {
         jLabel4.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel4.setText("Primero y Siguiente");
 
+        firstNextTable.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         firstNextTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -164,7 +167,7 @@ public class GUI extends javax.swing.JFrame {
             }
         });
 
-        mTable.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
+        mTable.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         mTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -181,7 +184,7 @@ public class GUI extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel5.setText("Tabla M");
 
-        jTable2.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
+        jTable2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jTable2.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -303,7 +306,7 @@ public class GUI extends javax.swing.JFrame {
                     head.getFirst(),
                     head.getNext()});
             });
-            noticeField.setText("¡Gramática procesada con éxito!");
+            noticeField.setText("¡Gramática analizada con éxito!");
         } else {
             noticeField.setText("¡Debe leer un archivo!");
         }
@@ -313,13 +316,19 @@ public class GUI extends javax.swing.JFrame {
         File file = FileTools.requestFile();
         if (file != null) {
             fileName.setText(file.getName());
+            grammarText.setText("");
+            freeGrammarText.setText("");
+            DefaultTableModel model = (DefaultTableModel) firstNextTable.getModel();
+            model.setRowCount(0);
+            model = (DefaultTableModel) mTable.getModel();
+            model.setRowCount(0);
+            
             try {
                 productions = FileTools.readFile(file);
             } catch (IOException ex) {
                 productions = null;
             }
-            if (productions != null) {
-                grammarText.setText("");
+            if (productions != null) {                
                 productions.forEach(string -> {
                     grammarText.append(string + "\n");
                 });

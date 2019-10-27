@@ -117,15 +117,15 @@ public class Grammar {
                     .forEachOrdered((Production p) -> {
                         int i = 0;
                         String symbol;
-                        while (i < p.length()){
-                            symbol = p.alpha.substring(i,i+1);
-                            if (symbol.compareTo("&") != 0){
+                        while (i < p.length()) {
+                            symbol = p.alpha.substring(i, i + 1);
+                            if (symbol.compareTo("&") != 0) {
                                 first.add(symbol);
                                 break;
                             }
                             i++;
                         }
-                        if (i == p.length()){
+                        if (i == p.length()) {
                             first.add("&");
                         }
                     });
@@ -150,8 +150,8 @@ public class Grammar {
                     i++;
                 }
             }
-        });        
-        
+        });
+
     }
 
     /**
@@ -189,7 +189,7 @@ public class Grammar {
                 if (prod.compareTo("&") == 0) {
                     // TODO   Usar SIGUIENTE
                 } else {
-                    String firstSymbol = prod.alpha.substring(0,1);
+                    String firstSymbol = prod.alpha.substring(0, 1);
                     if (this.PRIM.containsKey(firstSymbol)) {
 
                         this.PRIM.get(firstSymbol).stream().forEachOrdered((String p) -> {
@@ -213,7 +213,7 @@ public class Grammar {
     public void generateNext() {
         heads.values().forEach(head -> {
             head.getProductions().forEach((production) -> {
-                heads.keySet().forEach((symbol) -> {
+                heads.keySet().forEach(symbol -> {
                     if (production.alpha.contains(symbol)) {
                         String[] prodSplit = production.alpha.split(symbol, 0);
                         /**
@@ -221,7 +221,7 @@ public class Grammar {
                          * simbol contains next of head symbol.
                          */
                         ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
-                        if (prodSplit.length == 1 || nullable(prodSplit[prodSplit.length - 1])) {
+                        if (prodSplit.length <= 1 || nullable(prodSplit[prodSplit.length - 1])) {
                             if (!nxtOfSimbol.contains(head.getSymbol()) && symbol.compareTo(head.getSymbol()) != 0) {
                                 nxtOfSimbol.add(head.getSymbol());
                             }
@@ -231,15 +231,25 @@ public class Grammar {
                          * The first terminal rigth of symbol different to
                          * epsilon is in next of symbol.
                          */
-                        for (int i = 1; i < prodSplit.length; i++) {
-                            String betha = prodSplit[i];
-                            ArrayList<String> prinOfBetha = PRIMOfWord(betha);
+                        if (prodSplit.length > 1) {
+                            for (int i = 1; i < prodSplit.length; i++) {
+                                String betha = prodSplit[i];
+                                ArrayList<String> prinOfBetha = PRIMOfWord(betha);
+                                prinOfBetha.forEach(item -> {
+                                    if (item.compareTo("&") != 0 && !nxtOfSimbol.contains(item)) {
+                                        nxtOfSimbol.add(item);
+                                    }
+                                });
+                            }
+                        } else if (prodSplit.length == 1 && symbol.compareTo(production.alpha.substring(0, 1)) == 0) {
+                            ArrayList<String> prinOfBetha = PRIMOfWord(prodSplit[0]);
                             prinOfBetha.forEach(item -> {
                                 if (item.compareTo("&") != 0 && !nxtOfSimbol.contains(item)) {
                                     nxtOfSimbol.add(item);
                                 }
                             });
                         }
+
                     }
                 });
             });
@@ -254,14 +264,15 @@ public class Grammar {
             int i = 0;
             while (i < nxt.size()) {
                 String item = nxt.get(i);
-                if (symbolTools.isSymbolOf(item,this)) {
+                if (symbolTools.isSymbolOf(item, this)) {
                     ArrayList<String> nxtOfItem = heads.get(item).getNext();
-
-                    nxtOfItem.forEach(X -> {
+                    int cont = 0;
+                    for (String X : nxtOfItem) {
                         if (nxt.contains(X) == false) {
-                            nxt.add(X);
+                            cont++;
+                            nxt.add(i + cont, X);                            
                         }
-                    });
+                    }
 
                     nxt.remove(i);
                 } else {
@@ -331,6 +342,7 @@ public class Grammar {
                             p.nullableStatus = NullableStatus.NotNullable;
                             return false;
                         }
+                        j++;
                     }
                     break;
                 case Calculating:
