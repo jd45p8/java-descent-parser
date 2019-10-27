@@ -32,20 +32,20 @@ public class Head {
     /**
      * Head builder.
      *
-     * @param simbol
+     * @param symbol
      */
-    public Head(String simbol) {
-        this.simbol = simbol;
+    public Head(String symbol) {
+        this.simbol = symbol;
         this.productions = new ArrayList();
         this.next = new ArrayList();
     }
 
     /**
-     * Get head simbol.
+     * Get head symbol.
      *
-     * @return Head simbol.
+     * @return Head symbol.
      */
-    public String getSimbol() {
+    public String getSymbol() {
         return simbol;
     }
 
@@ -122,9 +122,9 @@ public class Head {
         int i = 0;
         while (i < productions.size()) {
             if (i > 0) {
-                result += "|" + productions.get(i);
+                result += simbol + "->" + productions.get(i).alpha + "\n";
             } else {
-                result += productions.get(i);
+                result += productions.get(i).alpha + "\n";
             }
 
             i++;

@@ -16,6 +16,8 @@
 package com.descentparser.tools;
 
 import com.descentparser.grammar.Grammar;
+import com.descentparser.grammar.Head;
+import java.util.ArrayList;
 
 /**
  * A tool set for managing simbols.
@@ -57,16 +59,16 @@ public class symbolTools {
     
     /**
      * Looks for an unused in the grammar unicode encoded uppercase symbol.
-     * @param g grammar where a free symbol is needed.
+     * @param nonTerminals nonterminals set where a free symbol is needed.
      * @return if found returns the free symbol in a string.
      */
-    public static String getUnusedUppercase(Grammar g){
+    public static String getUnusedUppercase(ArrayList<String> nonTerminals){
         int id = 0;
         int limit = (int) Math.pow(16,5);
         String uL;
         while (id < limit){
             uL = new String(Character.toChars(id));
-            if (Character.isUpperCase(id) && !g.heads.containsKey(uL)){
+            if (Character.isUpperCase(id) && !nonTerminals.contains(uL)){
                 return uL;
             }
             id++;

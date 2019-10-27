@@ -38,7 +38,7 @@ public class Recursion {
     public static boolean hasLeftRecursion(Head head) {
         ArrayList<Production> productions = head.getProductions();
         int i = 0;
-        String simbol = head.getSimbol();
+        String simbol = head.getSymbol();
         while (i < productions.size()) {
             String alpha = productions.get(i).alpha;
             if (alpha.substring(0, simbol.length()).compareTo(simbol) == 0) {
@@ -53,49 +53,33 @@ public class Recursion {
      * Removes left side recursion from head productions in a new array list.
      *
      * @param head Head whose productions has left side recursion.
-     * @param g Gramamr to which the head belongs.
+     * @param nonTerminals non terminals set of the grammar to which the head
+     * belongs.
      * @return Heads list as result of removing head left side recursion.
      */
-    public static ArrayList<Head> removeLeftSideRecursion(Head head, Grammar g) {
-        String simbol = head.getSimbol();
+    public static ArrayList<Head> removeLeftSideRecursion(Head head, ArrayList<String> nonTerminals) {
+        String simbol = head.getSymbol();
         Head A = new Head(simbol);
-        Head Asec = new Head(symbolTools.getUnusedUppercase(g));
+        Head Asec = new Head(symbolTools.getUnusedUppercase(nonTerminals));
 
         head.getProductions().forEach((production) -> {
             if (production.alpha.substring(0, simbol.length()).compareTo(simbol) == 0) {
-                Asec.addProduction(production.alpha.substring(simbol.length()) + Asec.getSimbol());
+                Asec.addProduction(production.alpha.substring(simbol.length()) + Asec.getSymbol());
             } else {
-                A.addProduction(production + Asec.getSimbol());
+                A.addProduction(production.alpha + Asec.getSymbol());
             }
         });
-        Asec.addProduction("&");
 
         ArrayList<Head> result = new ArrayList();
-        result.add(A);
-        result.add(Asec);
+        if (Asec.getProductions().size() > 0) {
+            Asec.addProduction("&");
+            nonTerminals.add(nonTerminals.indexOf(head.getSymbol()) + 1, Asec.getSymbol());
 
+            result.add(A);
+            result.add(Asec);
+        } else {
+            result.add(head);
+        }
         return result;
-    }
-
-    public static void main(String args[]) {
-        ArrayList<String> productions = new ArrayList();
-        productions.add("E->E+T");
-        productions.add("E->E-T");
-        productions.add("E->T");
-        productions.add("T->T*F");
-        productions.add("T->T/F");
-        productions.add("T->F");
-        productions.add("F->(E)");
-        productions.add("F->id");
-        Grammar g = new Grammar(productions);
-        g.heads.values().forEach((head) -> {
-            if (hasLeftRecursion(head)) {
-                removeLeftSideRecursion(head,g).forEach(tempHead -> {
-                    System.out.println(tempHead.toString());
-                });
-            } else {
-                System.out.println(head.toString());
-            }
-        });
     }
 }

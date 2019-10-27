@@ -36,13 +36,13 @@ public class Factoring {
      * left side factoring.
      * @return true if head productions have left side factoring.
      */
-    public static boolean hasLeftFactorig(Head head) {
+    public static boolean hasLeftFactoring(Head head) {
         ArrayList<Production> productions = head.getProductions();
         productions.sort((prod1, prod2) -> {
             return prod1.compareTo(prod2);
         });
 
-        String simbol = head.getSimbol();
+        String simbol = head.getSymbol();
         int i = 1;
         while (i < productions.size()) {
             if (productions.get(i).alpha.charAt(0) == productions.get(i - 1).alpha.charAt(0)) {
@@ -59,10 +59,11 @@ public class Factoring {
      * Removes left side factoring vice from head productions.
      *
      * @param head Head whose productions have left side factoring vice.
-     * @param g Grammar to which the head belongs.
+     * @param nonTerminals non terinals already used in grammar to whick head
+     * belongs.
      * @return Heads list as result of removing head left side factoring.
      */
-    public static ArrayList<Head> removeLeftSideRecursion(Head head, Grammar g) {
+    public static ArrayList<Head> removeLeftSideFactoring(Head head, ArrayList<String> nonTerminals) {
         ArrayList<Production> productions = head.getProductions();
         productions.sort((prod1, prod2) -> {
             return prod1.compareTo(prod2);
@@ -81,7 +82,7 @@ public class Factoring {
                  * If the first simbol of both subtrings is the same but is the
                  * same head simbol it isn't left factoring vice.
                  */
-                if (subS1.compareTo(subS2) == 0 && subS1.substring(0, 1).compareTo(head.getSimbol()) != 0) {
+                if (subS1.compareTo(subS2) == 0 && subS1.substring(0, 1).compareTo(head.getSymbol()) != 0) {
                     if (matchStrIndex == 1) {
                         matchProdCount++;
                     }
@@ -107,44 +108,32 @@ public class Factoring {
             i++;
         }
 
-        Head A = new Head(head.getSimbol());
-        Head Asec = new Head(symbolTools.getUnusedUppercase(g));
-
-        i = 0;
-        //Alpha is the common substring.
-        A.addProduction(productions.get(firstMatchProd).alpha.substring(0, matchStrIndex) + Asec.getSimbol());
-        while (i < productions.size()) {
-            //Is gamma if doesn't match with the commmon string.
-            if (i < firstMatchProd || i >= firstMatchProd + matchProdCount) {
-                A.addProduction(productions.get(i));
-            } else {
-                String subs = productions.get(i).alpha.substring(matchStrIndex);
-                Asec.addProduction(subs.isEmpty() ? "&" : subs);
-            }
-            i++;
-        }
-
         ArrayList<Head> result = new ArrayList();
-        result.add(A);
-        result.add(Asec);
-        return result;
-    }
 
-    public static void main(String args[]) {
-        ArrayList<String> productions = new ArrayList();
-        productions.add("P->iEtP");
-        productions.add("P->iEtPeP");
-        productions.add("P->a");
-        productions.add("E->b");
-        Grammar g = new Grammar(productions);
-        g.heads.values().forEach((head) -> {
-            if (hasLeftFactorig(head)) {
-                removeLeftSideRecursion(head,g).forEach(headTmp -> {
-                    System.out.println(headTmp.toString());
-                });
-            } else {
-                System.out.println(head.toString());
+        if (matchProdCount > 1) {
+            Head A = new Head(head.getSymbol());
+            Head Asec = new Head(symbolTools.getUnusedUppercase(nonTerminals));
+            nonTerminals.add(nonTerminals.indexOf(head.getSymbol())+1,Asec.getSymbol());
+
+            i = 0;
+            //Alpha is the common substring.
+            A.addProduction(productions.get(firstMatchProd).alpha.substring(0, matchStrIndex) + Asec.getSymbol());
+            while (i < productions.size()) {
+                //Is gamma if doesn't match with the commmon string.
+                if (i < firstMatchProd || i >= firstMatchProd + matchProdCount) {
+                    A.addProduction(productions.get(i).alpha);
+                } else {
+                    String subs = productions.get(i).alpha.substring(matchStrIndex);
+                    Asec.addProduction(subs.isEmpty() ? "&" : subs);
+                }
+                i++;
             }
-        });
+
+            result.add(A);
+            result.add(Asec);
+        }else{
+            result.add(head);
+        }
+        return result;
     }
 }

@@ -17,6 +17,8 @@ package com.descentparser.grammar;
 
 import com.descentparser.tools.NullableStatus;
 import com.descentparser.tools.symbolTools;
+import com.descentparser.vices.Factoring;
+import com.descentparser.vices.Recursion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,10 +31,11 @@ import java.util.Set;
  * @author José Polo <Github https://github.com/jd45p8>
  */
 public class Grammar {
+
     public Production[][] MTable;
     public final HashMap<String, Head> heads;
     public HashMap<String, Set<String>> PRIM;
-    public final ArrayList<String> nonTerminalSymbols;
+    public final ArrayList<String> nonTerminals;
     public final ArrayList<String> terminalSymbols;
 
     /**
@@ -42,20 +45,20 @@ public class Grammar {
      */
     public Grammar(ArrayList<String> productions) {
         heads = new HashMap();
-        nonTerminalSymbols = new ArrayList<>();
-        terminalSymbols = new ArrayList<>();
+        nonTerminals = new ArrayList();
+        terminalSymbols = new ArrayList();
 
         for (String alpha : productions) {
             String[] prodParts = alpha.split("->");
 
-            if (prodParts[0].length() == 1 && symbolTools.isTerminal(prodParts[0])) {
+            if (prodParts[0].length() == 1 && !symbolTools.isTerminal(prodParts[0])) {
                 if (prodParts.length > 1) {
                     Head head = heads.get(prodParts[0]);
 
                     if (head == null) {
                         head = new Head(prodParts[0]);
                         heads.put(prodParts[0], head);
-                        nonTerminalSymbols.add(prodParts[0]);
+                        nonTerminals.add(prodParts[0]);
                     }
 
                     head.addProduction(prodParts[1]);
@@ -71,25 +74,36 @@ public class Grammar {
                 break;
             }
         }
+    }
 
-        /**
-         * Get all non terminal symbols.
-         */
-        this.nonTerminalSymbols.stream().forEachOrdered((String k) -> {
-            Head h = this.heads.get(k);
-            h.getProductions().stream().forEachOrdered( (Production p) -> {
-                String[] chars = p.alpha.split("");
-                for (String c : chars) {
-                    if (c.compareTo("&") != 0 && symbolTools.isTerminal(c) && !terminalSymbols.contains(c)) {
-                        terminalSymbols.add(c);
-                    }
-                }
+    /**
+     * Execute all processes needed to let the grammar ready to recongnize
+     * strings.
+     */
+    public void processGrammar() {
+        ArrayList<Head> vicesFreeHeads = new ArrayList();
 
-            });
+        heads.keySet().forEach((key) -> {
+            Head head = heads.get(key);
+            ArrayList<Head> temp;
+            if (Factoring.hasLeftFactoring(head)) {
+                temp = Factoring.removeLeftSideFactoring(head, nonTerminals);
+                vicesFreeHeads.addAll(temp);
+            } else if (Recursion.hasLeftRecursion(head)) {
+                temp = Recursion.removeLeftSideRecursion(head, nonTerminals);
+                vicesFreeHeads.addAll(temp);
+            } else {
+                vicesFreeHeads.add(head);
+            }
         });
 
-        this.generatePRIMERO();
-        this.generateMTable();
+        heads.clear();
+        vicesFreeHeads.forEach((head) -> {
+            heads.put(head.getSymbol(), head);
+        });
+
+        generatePRIMERO();
+        generateNext();
     }
 
     /**
@@ -110,7 +124,7 @@ public class Grammar {
                         first.add(firstSymbol);
                     });
 
-            PRIM.put(h.getSimbol(), first);
+            PRIM.put(h.getSymbol(), first);
         });
 
         HashMap<String, Boolean> marked = new HashMap<>();
@@ -151,12 +165,12 @@ public class Grammar {
      * Generate the MTable.
      */
     private void generateMTable() {
-        this.MTable = new Production[this.nonTerminalSymbols.size()][this.terminalSymbols.size() + 1];
+        this.MTable = new Production[this.nonTerminals.size()][this.terminalSymbols.size() + 1];
 
         /**
          * Loop over all non terminal symbols.
          */
-        this.nonTerminalSymbols.stream().forEachOrdered((String key) -> {
+        this.nonTerminals.stream().forEachOrdered((String key) -> {
 
             /**
              * Loop over the productions.
@@ -170,12 +184,12 @@ public class Grammar {
                     if (this.PRIM.containsKey(firstSymbol)) {
 
                         this.PRIM.get(firstSymbol).stream().forEachOrdered((String p) -> {
-                            if (MTable[this.nonTerminalSymbols.indexOf(key)][this.terminalSymbols.indexOf(p)] == null) {
-                                MTable[this.nonTerminalSymbols.indexOf(key)][this.terminalSymbols.indexOf(p)] = prod;
+                            if (MTable[this.nonTerminals.indexOf(key)][this.terminalSymbols.indexOf(p)] == null) {
+                                MTable[this.nonTerminals.indexOf(key)][this.terminalSymbols.indexOf(p)] = prod;
                             }
                         });
                     } else {
-                        MTable[this.nonTerminalSymbols.indexOf(key)][this.terminalSymbols.indexOf(firstSymbol)] = prod;
+                        MTable[this.nonTerminals.indexOf(key)][this.terminalSymbols.indexOf(firstSymbol)] = prod;
                     }
                 }
 
@@ -199,8 +213,8 @@ public class Grammar {
                          */
                         if (prodSplit.length == 1 || nullable(prodSplit[prodSplit.length - 1])) {
                             ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
-                            if (!nxtOfSimbol.contains(head.getSimbol())) {
-                                nxtOfSimbol.add(head.getSimbol());
+                            if (!nxtOfSimbol.contains(head.getSymbol())) {
+                                nxtOfSimbol.add(head.getSymbol());
                             }
                         }
 
@@ -223,23 +237,7 @@ public class Grammar {
             });
         });
 
-        boolean first = true;
-        heads.values().forEach(head -> {
-            ArrayList<String> nxt = head.getNext();
-            if (first) {
-                nxt.add("$");
-            }
-            boolean repeat;
-            do {
-                repeat = false;
-                for (String item: nxt) {
-                    if (!symbolTools.isTerminal(item)) {
-                        nxt.addAll(heads.get(item).getNext());
-                        repeat = true;
-                    }
-                }
-            } while (repeat);
-        });
+       
     }
 
     /**
@@ -315,7 +313,5 @@ public class Grammar {
 
         return !isSomeOneCalculating;
     }
-    
-    
-    
+
 }
