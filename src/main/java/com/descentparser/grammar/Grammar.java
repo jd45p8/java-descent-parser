@@ -240,7 +240,7 @@ public class Grammar {
                          * simbol contains next of head symbol.
                          */
                         ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
-                        if (prodSplit.length <= 1 || nullable(prodSplit[prodSplit.length - 1])) {
+                        if (prodSplit.length == 1 || nullable(prodSplit[prodSplit.length - 1])) {
                             if (!nxtOfSimbol.contains(head.getSymbol()) && symbol.compareTo(head.getSymbol()) != 0) {
                                 nxtOfSimbol.add(head.getSymbol());
                             }

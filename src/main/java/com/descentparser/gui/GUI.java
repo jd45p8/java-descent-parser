@@ -71,7 +71,7 @@ public class GUI extends javax.swing.JFrame {
         mTable = new javax.swing.JTable();
         jLabel5 = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
+        ackTable = new javax.swing.JTable();
         jLabel6 = new javax.swing.JLabel();
 
         jCheckBoxMenuItem1.setSelected(true);
@@ -83,6 +83,7 @@ public class GUI extends javax.swing.JFrame {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Descent Parser");
 
+        fileName.setEditable(false);
         fileName.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
 
         select.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
@@ -108,7 +109,7 @@ public class GUI extends javax.swing.JFrame {
         grammarText.setRows(5);
         jScrollPane1.setViewportView(grammarText);
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel2.setText("Sin analizar");
 
         freeGrammarText.setEditable(false);
@@ -116,10 +117,10 @@ public class GUI extends javax.swing.JFrame {
         freeGrammarText.setRows(5);
         jScrollPane2.setViewportView(freeGrammarText);
 
-        jLabel3.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel3.setText("Sin vicios");
 
-        jLabel4.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel4.setText("Primero y Siguiente");
 
         firstNextTable.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
@@ -181,25 +182,36 @@ public class GUI extends javax.swing.JFrame {
         jScrollPane5.setViewportView(mTable);
         mTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel5.setText("Tabla M");
 
-        jTable2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        ackTable.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        ackTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Pila", "Entrada", "Salida"
             }
-        ));
-        jScrollPane4.setViewportView(jTable2);
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false
+            };
 
-        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel6.setText("Sin vicios");
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        ackTable.getTableHeader().setReorderingAllowed(false);
+        jScrollPane4.setViewportView(ackTable);
+        if (ackTable.getColumnModel().getColumnCount() > 0) {
+            ackTable.getColumnModel().getColumn(0).setResizable(false);
+            ackTable.getColumnModel().getColumn(1).setResizable(false);
+            ackTable.getColumnModel().getColumn(2).setResizable(false);
+        }
+
+        jLabel6.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel6.setText("Seguimiento de reconocimiento");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -348,11 +360,16 @@ public class GUI extends javax.swing.JFrame {
             fileName.setText(file.getName());
             grammarText.setText("");
             freeGrammarText.setText("");
+            
             DefaultTableModel model = (DefaultTableModel) firstNextTable.getModel();
             model.setRowCount(0);
+            
             model = (DefaultTableModel) mTable.getModel();
             model.setRowCount(0);
             model.setColumnCount(0);
+            
+            model = (DefaultTableModel) ackTable.getModel();
+            model.setRowCount(0);
             
             try {
                 productions = FileTools.readFile(file);
@@ -407,6 +424,7 @@ public class GUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTable ackTable;
     private javax.swing.JButton analize;
     private javax.swing.JButton analize1;
     private javax.swing.JTextField fileName;
@@ -426,7 +444,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JTable jTable2;
     private javax.swing.JTable mTable;
     private javax.swing.JLabel noticeField;
     private javax.swing.JButton select;
