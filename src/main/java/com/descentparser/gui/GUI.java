@@ -3,10 +3,10 @@ package com.descentparser.gui;
 import com.descentparser.tools.FileTools;
 import com.descentparser.grammar.Grammar;
 import com.descentparser.grammar.Head;
-import com.descentparser.vices.Factoring;
 import java.util.ArrayList;
 import java.io.File;
 import java.io.IOException;
+import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
@@ -228,9 +228,9 @@ public class GUI extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -295,17 +295,47 @@ public class GUI extends javax.swing.JFrame {
             grammar.processGrammar();
 
             freeGrammarText.setText("");
-            DefaultTableModel model = (DefaultTableModel) firstNextTable.getModel();
-            model.setRowCount(0);
+
+            DefaultTableModel firstModel = (DefaultTableModel) firstNextTable.getModel();
+            firstModel.setRowCount(0);
+
+            DefaultTableModel mModel = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int x, int y) {
+                    return false;
+                }
+            };
+            mTable.setModel(mModel);
+
+            String[] columns = new String[grammar.terminalSymbols.size() + 1];
+            columns[0] = "Term\\no Term";            
+            for (int i = 1; i < columns.length; i++) {
+                columns[i] = grammar.terminalSymbols.get(i - 1);
+            }
+
+            mModel.setColumnIdentifiers(columns);
+            mTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            
+            mTable.getColumnModel().getColumn(0).setPreferredWidth(70);
+            for (int i = 1; i < columns.length; i++) {
+                mTable.getColumnModel().getColumn(i).setPreferredWidth(70);
+            }
 
             grammar.nonTerminals.forEach(A -> {
                 Head head = grammar.heads.get(A);
                 freeGrammarText.append(head.toString());
-                model.addRow(new Object[]{
+                firstModel.addRow(new Object[]{
                     head.getSymbol(),
                     head.getFirst(),
                     head.getNext()});
+                String[] rowString = new String[columns.length];
+                rowString[0] = A;
+                for (int i = 1; i < columns.length; i++) {
+                    rowString[i] = grammar.mTable.getProductionString(A, (String) columns[i]);
+                }
+                mModel.addRow(rowString);
             });
+
             noticeField.setText("¡Gramática analizada con éxito!");
         } else {
             noticeField.setText("¡Debe leer un archivo!");
@@ -322,6 +352,7 @@ public class GUI extends javax.swing.JFrame {
             model.setRowCount(0);
             model = (DefaultTableModel) mTable.getModel();
             model.setRowCount(0);
+            model.setColumnCount(0);
             
             try {
                 productions = FileTools.readFile(file);

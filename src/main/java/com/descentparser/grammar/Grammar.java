@@ -30,7 +30,7 @@ import java.util.HashMap;
  */
 public class Grammar {
 
-    public Production[][] MTable;
+    public final MTable mTable;
     public final HashMap<String, Head> heads;
     public final ArrayList<String> nonTerminals;
     public final ArrayList<String> terminalSymbols;
@@ -44,6 +44,7 @@ public class Grammar {
         heads = new HashMap();
         nonTerminals = new ArrayList();
         terminalSymbols = new ArrayList();
+        mTable = new MTable();
 
         for (String alpha : productions) {
             String[] prodParts = alpha.split("->");
@@ -99,8 +100,22 @@ public class Grammar {
             heads.put(head.getSymbol(), head);
         });
 
+        nonTerminals.forEach(A -> {
+            Head head = heads.get(A);
+            head.getProductions().forEach(p -> {
+                for (int i = 0; i < p.alpha.length(); i++) {
+                    if (symbolTools.isTerminal(p.alpha.charAt(i)) && p.alpha.charAt(i) != '&'
+                            && !terminalSymbols.contains(p.alpha.substring(i, i + 1))) {
+                        terminalSymbols.add(p.alpha.substring(i, i + 1));
+                    }
+                }
+            });
+        });
+        terminalSymbols.add("$");
+
         generatePRIMERO();
         generateNext();
+        generateMTable();
     }
 
     /**
@@ -151,7 +166,6 @@ public class Grammar {
                 }
             }
         });
-
     }
 
     /**
@@ -161,7 +175,11 @@ public class Grammar {
      * @return
      */
     public ArrayList<String> PRIMOfWord(String w) {
-        String firstSymbol = w.charAt(0) + "";
+        String firstSymbol = null;
+        int i = 0;
+        while (i < w.length() && (firstSymbol = w.substring(i, i + 1)).compareTo("&") == 0) {
+            i++;
+        }
 
         if (this.heads.containsKey(firstSymbol)) {
             return heads.get(firstSymbol).getFirst();
@@ -174,36 +192,37 @@ public class Grammar {
      * Generate the MTable.
      */
     private void generateMTable() {
-        this.MTable = new Production[this.nonTerminals.size()][this.terminalSymbols.size() + 1];
-
         /**
          * Loop over all non terminal symbols.
          */
-        this.nonTerminals.stream().forEachOrdered((String key) -> {
-
+        nonTerminals.forEach((String A) -> {
+            Head head = heads.get(A);
             /**
-             * Loop over the productions.
+             * Loop over first symbols of head.
              */
-            this.heads.get(key).getProductions().stream().forEachOrdered((Production prod) -> {
-
-                if (prod.compareTo("&") == 0) {
-                    // TODO   Usar SIGUIENTE
-                } else {
-                    String firstSymbol = prod.alpha.substring(0, 1);
-                    if (this.PRIM.containsKey(firstSymbol)) {
-
-                        this.PRIM.get(firstSymbol).stream().forEachOrdered((String p) -> {
-                            if (MTable[this.nonTerminals.indexOf(key)][this.terminalSymbols.indexOf(p)] == null) {
-                                MTable[this.nonTerminals.indexOf(key)][this.terminalSymbols.indexOf(p)] = prod;
+            head.getFirst().forEach(firstSymbol -> {
+                head.getProductions().forEach(production -> {
+                    ArrayList<String> first = PRIMOfWord(production.alpha);
+                    if (first.contains(firstSymbol)) {
+                        /**
+                         * If A generates & in 0 or more steps every symbol in
+                         * next of A should be linked to production.
+                         */
+                        if (firstSymbol.compareTo("&") == 0) {
+                            ArrayList<String> next = head.getNext();
+                            next.forEach(b -> {
+                                if (mTable.getProduction(A, b) == null) {
+                                    mTable.setProduction(A, b, production);
+                                }
+                            });
+                        } else {
+                            if (mTable.getProduction(A, firstSymbol) == null) {
+                                mTable.setProduction(A, firstSymbol, production);
                             }
-                        });
-                    } else {
-                        MTable[this.nonTerminals.indexOf(key)][this.terminalSymbols.indexOf(firstSymbol)] = prod;
+                        }
                     }
-                }
-
+                });
             });
-
         });
     }
 
@@ -249,7 +268,6 @@ public class Grammar {
                                 }
                             });
                         }
-
                     }
                 });
             });
@@ -270,7 +288,7 @@ public class Grammar {
                     for (String X : nxtOfItem) {
                         if (nxt.contains(X) == false) {
                             cont++;
-                            nxt.add(i + cont, X);                            
+                            nxt.add(i + cont, X);
                         }
                     }
 
