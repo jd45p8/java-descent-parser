@@ -86,6 +86,8 @@ public class Grammar {
     public ArrayList<String[]> match(String str) {
 
         String out = "";
+
+        str += "$";
         Queue<String> strQueue = new LinkedList(Arrays.asList(str.split("")));
 
         Stack<String> stack = new Stack();
@@ -98,7 +100,11 @@ public class Grammar {
         String a = strQueue.poll();
         boolean sw = true;
 
+        int nLine = 0;
+
         while (true) {
+            follow.get(nLine)[2] = "";
+
             String[] line = new String[3];
             line[1] = strQueue.toString();
             line[2] = "";
@@ -116,7 +122,7 @@ public class Grammar {
                 a = strQueue.poll();
 
                 if (a == null) {
-                    a = "$";
+                    //   a = "$";
                 }
             } else {
                 Production prod = this.mTable.getProduction(x, a);
@@ -126,12 +132,13 @@ public class Grammar {
                     break;
                 }
 
-                line[2] = x + "->" + prod.alpha;
+                follow.get(nLine)[2] = x + "->" + prod.alpha;
                 stack.addAll(Arrays.asList(StringTools.reverse(prod.alpha).split("")));
             }
 
             line[0] = stack.toString();
             follow.add(line);
+            nLine++;
         }
 
         // follow.stream().forEach((s) -> System.out.println(Arrays.toString(s)));
