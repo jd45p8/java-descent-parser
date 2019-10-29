@@ -114,6 +114,10 @@ public class Grammar {
                 break;
             } else if (x.equals(a)) {
                 a = strQueue.poll();
+
+                if (a == null) {
+                    a = "$";
+                }
             } else {
                 Production prod = this.mTable.getProduction(x, a);
 
@@ -130,9 +134,7 @@ public class Grammar {
             follow.add(line);
         }
 
-        // follow.stream().forEach((s) -> {
-        // System.out.println(Arrays.toString(s));
-        // });
+        // follow.stream().forEach((s) -> System.out.println(Arrays.toString(s)));
         return sw ? follow : null;
     }
 
@@ -277,14 +279,14 @@ public class Grammar {
                             next.forEach(b -> {
                                 if (mTable.getProduction(A, b) == null) {
                                     mTable.setProduction(A, b, production);
-                                }else {
+                                } else {
                                     System.out.println("Tabla M ambigua.");
                                 }
                             });
                         } else {
                             if (mTable.getProduction(A, firstSymbol) == null) {
                                 mTable.setProduction(A, firstSymbol, production);
-                            }else {
+                            } else {
                                 System.out.println("Tabla M ambigua.");
                             }
                         }

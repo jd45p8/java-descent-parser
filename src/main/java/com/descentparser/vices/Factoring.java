@@ -15,7 +15,6 @@
  */
 package com.descentparser.vices;
 
-import com.descentparser.grammar.Grammar;
 import com.descentparser.grammar.Head;
 import com.descentparser.grammar.Production;
 import com.descentparser.tools.symbolTools;
