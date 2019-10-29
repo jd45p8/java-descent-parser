@@ -6,6 +6,7 @@ import com.descentparser.grammar.Head;
 import java.util.ArrayList;
 import java.io.File;
 import java.io.IOException;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
@@ -65,7 +66,7 @@ public class GUI extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         firstNextTable = new javax.swing.JTable();
-        fileName1 = new javax.swing.JTextField();
+        testStr = new javax.swing.JTextField();
         analize1 = new javax.swing.JButton();
         jScrollPane5 = new javax.swing.JScrollPane();
         mTable = new javax.swing.JTable();
@@ -158,7 +159,7 @@ public class GUI extends javax.swing.JFrame {
             firstNextTable.getColumnModel().getColumn(2).setResizable(false);
         }
 
-        fileName1.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        testStr.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
 
         analize1.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         analize1.setText("Reconocer");
@@ -230,7 +231,7 @@ public class GUI extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(analize, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(70, 70, 70)
-                        .addComponent(fileName1)
+                        .addComponent(testStr)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(analize1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap())
@@ -273,7 +274,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(select)
                     .addComponent(fileName)
                     .addComponent(analize)
-                    .addComponent(fileName1)
+                    .addComponent(testStr)
                     .addComponent(analize1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -320,14 +321,14 @@ public class GUI extends javax.swing.JFrame {
             mTable.setModel(mModel);
 
             String[] columns = new String[grammar.terminalSymbols.size() + 1];
-            columns[0] = "Term\\no Term";            
+            columns[0] = "Term\\no Term";
             for (int i = 1; i < columns.length; i++) {
                 columns[i] = grammar.terminalSymbols.get(i - 1);
             }
 
             mModel.setColumnIdentifiers(columns);
             mTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-            
+
             mTable.getColumnModel().getColumn(0).setPreferredWidth(70);
             for (int i = 1; i < columns.length; i++) {
                 mTable.getColumnModel().getColumn(i).setPreferredWidth(70);
@@ -360,23 +361,23 @@ public class GUI extends javax.swing.JFrame {
             fileName.setText(file.getName());
             grammarText.setText("");
             freeGrammarText.setText("");
-            
+
             DefaultTableModel model = (DefaultTableModel) firstNextTable.getModel();
             model.setRowCount(0);
-            
+
             model = (DefaultTableModel) mTable.getModel();
             model.setRowCount(0);
             model.setColumnCount(0);
-            
+
             model = (DefaultTableModel) ackTable.getModel();
             model.setRowCount(0);
-            
+
             try {
                 productions = FileTools.readFile(file);
             } catch (IOException ex) {
                 productions = null;
             }
-            if (productions != null) {                
+            if (productions != null) {
                 productions.forEach(string -> {
                     grammarText.append(string + "\n");
                 });
@@ -391,6 +392,18 @@ public class GUI extends javax.swing.JFrame {
 
     private void analize1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_analize1ActionPerformed
         // TODO add your handling code here:
+        ArrayList<String[]> results = this.grammar.match(this.testStr.getText());
+        DefaultTableModel model = (DefaultTableModel) ackTable.getModel();
+        model.setRowCount(0);
+
+        if (results != null) {
+
+            results.stream().forEachOrdered((String[] row) -> {
+                model.addRow(new Object[]{row[0], row[1], row[2]});
+            });
+        } else {
+            JOptionPane.showMessageDialog(this, "Cadena no reconocida.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_analize1ActionPerformed
 
     /**
@@ -428,7 +441,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton analize;
     private javax.swing.JButton analize1;
     private javax.swing.JTextField fileName;
-    private javax.swing.JTextField fileName1;
     private javax.swing.JTable firstNextTable;
     private javax.swing.JTextArea freeGrammarText;
     private javax.swing.JTextArea grammarText;
@@ -447,5 +459,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JTable mTable;
     private javax.swing.JLabel noticeField;
     private javax.swing.JButton select;
+    private javax.swing.JTextField testStr;
     // End of variables declaration//GEN-END:variables
 }

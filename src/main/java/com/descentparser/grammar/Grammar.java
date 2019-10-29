@@ -16,12 +16,16 @@
 package com.descentparser.grammar;
 
 import com.descentparser.tools.NullableStatus;
+import com.descentparser.tools.StringTools;
 import com.descentparser.tools.symbolTools;
 import com.descentparser.vices.Factoring;
 import com.descentparser.vices.Recursion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
 
 /**
  * Represents a grammar structure with its productions.
@@ -72,6 +76,64 @@ public class Grammar {
                 break;
             }
         }
+    }
+
+    /**
+     *
+     * @param str
+     * @return
+     */
+    public ArrayList<String[]> match(String str) {
+
+        String out = "";
+        Queue<String> strQueue = new LinkedList(Arrays.asList(str.split("")));
+
+        Stack<String> stack = new Stack();
+        stack.push("$");
+        stack.push(this.nonTerminals.get(0));
+
+        ArrayList<String[]> follow = new ArrayList<>();
+        follow.add(new String[]{stack.toString(), strQueue.toString(), out});
+
+        String a = strQueue.poll();
+        boolean sw = true;
+
+        while (true) {
+            String[] line = new String[3];
+            line[1] = strQueue.toString();
+            line[2] = "";
+
+            String x = stack.pop();
+
+            if (x.equals("&")) {
+                continue;
+            }
+
+            if (x.equals("$")) {
+                sw = strQueue.isEmpty();
+                break;
+            } else if (x.equals(a)) {
+                a = strQueue.poll();
+            } else {
+                Production prod = this.mTable.getProduction(x, a);
+
+                if (prod == null) {
+                    sw = false;
+                    break;
+                }
+
+                line[2] = x + "->" + prod.alpha;
+                stack.addAll(Arrays.asList(StringTools.reverse(prod.alpha).split("")));
+            }
+
+            line[0] = stack.toString();
+            follow.add(line);
+        }
+
+        // follow.stream().forEach((s) -> {
+        // System.out.println(Arrays.toString(s));
+        // });
+        return sw ? follow : null;
     }
 
     /**
