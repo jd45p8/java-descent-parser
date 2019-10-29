@@ -277,11 +277,15 @@ public class Grammar {
                             next.forEach(b -> {
                                 if (mTable.getProduction(A, b) == null) {
                                     mTable.setProduction(A, b, production);
+                                }else {
+                                    System.out.println("Tabla M ambigua.");
                                 }
                             });
                         } else {
                             if (mTable.getProduction(A, firstSymbol) == null) {
                                 mTable.setProduction(A, firstSymbol, production);
+                            }else {
+                                System.out.println("Tabla M ambigua.");
                             }
                         }
                     }
@@ -296,7 +300,7 @@ public class Grammar {
      * @throws NullPointerException if isn't able to found a terminal symbol in
      * heads list.
      */
-    public void generateNext() {
+    public void generateNext() throws NullPointerException {
         heads.values().forEach(head -> {
             head.getProductions().forEach((production) -> {
                 heads.keySet().forEach(symbol -> {
@@ -335,10 +339,12 @@ public class Grammar {
 
         boolean first = true;
         heads.values().forEach(head -> {
+            boolean[] visited = new boolean[heads.size()];
             ArrayList<String> nxt = head.getNext();
             if (first) {
                 nxt.add("$");
             }
+
             int i = 0;
             while (i < nxt.size()) {
                 String item = nxt.get(i);
@@ -348,7 +354,15 @@ public class Grammar {
                     for (String X : nxtOfItem) {
                         if (nxt.contains(X) == false) {
                             cont++;
-                            nxt.add(i + cont, X);
+                            if (symbolTools.isSymbolOf(X, this)) {
+                                int indexOf = nonTerminals.indexOf(item);
+                                if (!visited[indexOf]) {
+                                    nxt.add(i + cont, X);
+                                    visited[indexOf] = true;
+                                }
+                            } else {
+                                nxt.add(i + cont, X);
+                            }
                         }
                     }
 
