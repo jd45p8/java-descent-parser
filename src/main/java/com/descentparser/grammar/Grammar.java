@@ -343,11 +343,13 @@ public class Grammar {
         });
 
         boolean first = true;
-        heads.values().forEach(head -> {
+        for (String nonTerminal: nonTerminals){
+            Head head = heads.get(nonTerminal);
             boolean[] visited = new boolean[heads.size()];
             ArrayList<String> nxt = head.getNext();
             if (first) {
                 nxt.add("$");
+                first= false;
             }
 
             int i = 0;
@@ -376,7 +378,7 @@ public class Grammar {
                     i++;
                 }
             }
-        });
+        }
     }
 
     /**
