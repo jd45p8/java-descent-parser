@@ -139,8 +139,10 @@ public class Grammar {
     /**
      * Execute all processes needed to let the grammar ready to recongnize
      * strings.
+     *
+     * @throws NullPointerException
      */
-    public void processGrammar() {
+    public void processGrammar() throws NullPointerException {
         ArrayList<Head> vicesFreeHeads = new ArrayList();
 
         heads.keySet().forEach((key) -> {
@@ -290,6 +292,9 @@ public class Grammar {
 
     /**
      * Looks for and set the next of every non terminal of the grammar.
+     *
+     * @throws NullPointerException if isn't able to found a terminal symbol in
+     * heads list.
      */
     public void generateNext() {
         heads.values().forEach(head -> {
@@ -302,7 +307,9 @@ public class Grammar {
                          * simbol contains next of head symbol.
                          */
                         ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
-                        if (prodSplit.length == 1 || nullable(prodSplit[prodSplit.length - 1])) {
+
+                        if (symbol.charAt(0) == production.alpha.charAt(production.alpha.length() - 1)
+                                || nullable(prodSplit[prodSplit.length - 1])) {
                             if (!nxtOfSimbol.contains(head.getSymbol()) && symbol.compareTo(head.getSymbol()) != 0) {
                                 nxtOfSimbol.add(head.getSymbol());
                             }
@@ -312,18 +319,9 @@ public class Grammar {
                          * The first terminal rigth of symbol different to
                          * epsilon is in next of symbol.
                          */
-                        if (prodSplit.length > 1) {
-                            for (int i = 1; i < prodSplit.length; i++) {
-                                String betha = prodSplit[i];
-                                ArrayList<String> prinOfBetha = PRIMOfWord(betha);
-                                prinOfBetha.forEach(item -> {
-                                    if (item.compareTo("&") != 0 && !nxtOfSimbol.contains(item)) {
-                                        nxtOfSimbol.add(item);
-                                    }
-                                });
-                            }
-                        } else if (prodSplit.length == 1 && symbol.compareTo(production.alpha.substring(0, 1)) == 0) {
-                            ArrayList<String> prinOfBetha = PRIMOfWord(prodSplit[0]);
+                        for (int i = 1; i < prodSplit.length; i++) {
+                            String betha = prodSplit[i];
+                            ArrayList<String> prinOfBetha = PRIMOfWord(betha);
                             prinOfBetha.forEach(item -> {
                                 if (item.compareTo("&") != 0 && !nxtOfSimbol.contains(item)) {
                                     nxtOfSimbol.add(item);
@@ -384,6 +382,7 @@ public class Grammar {
             } else {
                 return false;
             }
+            i++;
         }
         return true;
     }
@@ -398,43 +397,44 @@ public class Grammar {
     public boolean nullable(Head head) throws NullPointerException {
         ArrayList<Production> productions = head.getProductions();
         int i = 0;
-        boolean isSomeOneCalculating = false;
         while (i < productions.size()) {
+            boolean isNullable = true;
             Production p = productions.get(i);
             switch (p.nullableStatus) {
                 case NotCalculated:
                     p.nullableStatus = NullableStatus.Calculating;
                     int j = 0;
-                    while (j < p.alpha.length()) {
-                        if (!symbolTools.isTerminal(p.alpha.charAt(i))) {
-                            Head nextHead = heads.get(p.alpha.substring(i, i + 1));
+                    while (j < p.alpha.length() && isNullable) {
+                        if (!symbolTools.isTerminal(p.alpha.charAt(j))) {
+                            Head nextHead = heads.get(p.alpha.substring(j, j + 1));
                             if (nextHead != null) {
-                                if (nullable(nextHead)) {
-                                    p.nullableStatus = NullableStatus.Nullable;
-                                } else {
+                                if (!nullable(nextHead)) {
                                     p.nullableStatus = NullableStatus.NotNullable;
-                                    return false;
+                                    isNullable = false;
                                 }
                             } else {
-                                throw new NullPointerException("Simbol " + p.alpha.charAt(i) + " not found.");
+                                throw new NullPointerException("Simbol " + p.alpha.charAt(j) + " not found.");
                             }
-                        } else if (p.alpha.charAt(i) != '&') {
+                        } else if (p.alpha.charAt(j) != '&') {
                             p.nullableStatus = NullableStatus.NotNullable;
-                            return false;
+                            isNullable = false;
                         }
                         j++;
                     }
+
+                    if (isNullable) {
+                        p.nullableStatus = NullableStatus.Nullable;
+                        return true;
+                    }
                     break;
                 case Calculating:
-                    isSomeOneCalculating = true;
                     break;
                 default:
                     return p.nullableStatus == NullableStatus.Nullable;
             }
             i++;
         }
-
-        return !isSomeOneCalculating;
+        return false;
     }
 
 }
