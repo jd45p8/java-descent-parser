@@ -205,7 +205,9 @@ public class Grammar {
                             symbol = p.alpha.substring(i, i + 1);
                             if (symbol.compareTo("&") != 0) {
                                 first.add(symbol);
-                                break;
+                                if (!nullable(symbol)) {
+                                    break;
+                                }
                             }
                             i++;
                         }
@@ -343,13 +345,13 @@ public class Grammar {
         });
 
         boolean first = true;
-        for (String nonTerminal: nonTerminals){
+        for (String nonTerminal : nonTerminals) {
             Head head = heads.get(nonTerminal);
             boolean[] visited = new boolean[heads.size()];
             ArrayList<String> nxt = head.getNext();
             if (first) {
                 nxt.add("$");
-                first= false;
+                first = false;
             }
 
             int i = 0;
