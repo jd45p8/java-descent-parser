@@ -33,7 +33,7 @@ import java.util.Stack;
  * @author José Polo <Github https://github.com/jd45p8>
  */
 public class Grammar {
-    
+
     public final MTable mTable;
     public final HashMap<String, Head> heads;
     public final ArrayList<String> nonTerminals;
@@ -49,22 +49,22 @@ public class Grammar {
         nonTerminals = new ArrayList();
         terminalSymbols = new ArrayList();
         mTable = new MTable();
-        
+
         for (String alpha : productions) {
             String[] prodParts = alpha.split("->");
-            
+
             if (prodParts[0].length() == 1 && !symbolTools.isTerminal(prodParts[0])) {
                 if (prodParts.length > 1) {
                     Head head = heads.get(prodParts[0]);
-                    
+
                     if (head == null) {
                         head = new Head(prodParts[0]);
                         heads.put(prodParts[0], head);
                         nonTerminals.add(prodParts[0]);
                     }
-                    
+
                     head.addProduction(prodParts[1]);
-                    
+
                 } else {
                     // Removes all elements from head list if a production is misshapen.
                     heads.clear();
@@ -84,22 +84,22 @@ public class Grammar {
      * @return
      */
     public ArrayList<String[]> match(String str) {
-        
+
         Queue<String> strQueue = new LinkedList(Arrays.asList((str + "$").split("")));
-        
+
         Stack<String> stack = new Stack();
         stack.push("$");
         stack.push(this.nonTerminals.get(0));
-        
+
         ArrayList<String[]> follow = new ArrayList<>();
-        
+
         while (true) {
             follow.add(new String[]{stack.toString(), strQueue.toString(), ""});
-            
+
             String a = strQueue.peek();
             if (!a.equals("&")) {
                 String X = stack.pop();
-                
+
                 if (X.equals("$")) {
                     return X.equals(a) ? follow : null;
                 } else if (X.equals(a)) {
@@ -107,22 +107,18 @@ public class Grammar {
                     a = strQueue.peek();
                 } else if (!X.equals("&")) {
                     Production prod = this.mTable.getProduction(X, a);
-                    
+
                     if (prod == null) {
                         return null;
                     }
-                    
+
                     follow.get(follow.size() - 1)[2] = X + "->" + prod.alpha;;
                     stack.addAll(Arrays.asList(StringTools.reverse(prod.alpha).split("")));
                 }
             } else {
                 strQueue.poll();
             }
-            
-            System.out.println(Arrays.toString(follow.get(follow.size() - 1)));
         }
-
-        //follow.stream().forEach((s) -> System.out.println(Arrays.toString(s)));
     }
 
     /**
@@ -133,7 +129,7 @@ public class Grammar {
      */
     public void processGrammar() throws NullPointerException {
         ArrayList<Head> vicesFreeHeads = new ArrayList();
-        
+
         heads.keySet().forEach((key) -> {
             Head head = heads.get(key);
             ArrayList<Head> temp;
@@ -147,12 +143,12 @@ public class Grammar {
                 vicesFreeHeads.add(head);
             }
         });
-        
+
         heads.clear();
         vicesFreeHeads.forEach((head) -> {
             heads.put(head.getSymbol(), head);
         });
-        
+
         nonTerminals.forEach(A -> {
             Head head = heads.get(A);
             head.getProductions().forEach(p -> {
@@ -165,7 +161,7 @@ public class Grammar {
             });
         });
         terminalSymbols.add("$");
-        
+
         generatePRIMERO();
         generateNext();
         generateMTable();
@@ -196,7 +192,7 @@ public class Grammar {
                 }
             });
         });
-        
+
         heads.values().forEach(head -> {
             ArrayList<String> first = head.getFirst();
             boolean visited[] = new boolean[terminalSymbols.size()];
@@ -240,11 +236,11 @@ public class Grammar {
         while (i < w.length() && (firstSymbol = w.substring(i, i + 1)).compareTo("&") == 0) {
             i++;
         }
-        
+
         if (this.heads.containsKey(firstSymbol)) {
             return heads.get(firstSymbol).getFirst();
         }
-        
+
         return new ArrayList<>(Arrays.asList(firstSymbol));
     }
 
@@ -297,9 +293,16 @@ public class Grammar {
      * heads list.
      */
     public void generateNext() throws NullPointerException {
-        heads.values().forEach(head -> {
+        boolean first = true;
+        for (String headSymbol : nonTerminals) {
+            Head head = heads.get(headSymbol);
+            if (first) {
+                head.getNext().add("$");
+                first = false;
+            }
+
             head.getProductions().forEach((production) -> {
-                heads.keySet().forEach(symbol -> {
+                nonTerminals.forEach(symbol -> {
                     if (production.alpha.contains(symbol)) {
                         String[] prodSplit = production.alpha.split(symbol, 0);
                         /**
@@ -307,7 +310,7 @@ public class Grammar {
                          * simbol contains next of head symbol.
                          */
                         ArrayList<String> nxtOfSimbol = heads.get(symbol).getNext();
-                        
+
                         if (symbol.charAt(0) == production.alpha.charAt(production.alpha.length() - 1)
                                 || nullable(prodSplit[prodSplit.length - 1])) {
                             if (!nxtOfSimbol.contains(head.getSymbol()) && symbol.compareTo(head.getSymbol()) != 0) {
@@ -331,18 +334,13 @@ public class Grammar {
                     }
                 });
             });
-        });
-        
-        boolean first = true;
+        }
+
         for (String nonTerminal : nonTerminals) {
             Head head = heads.get(nonTerminal);
             boolean[] visited = new boolean[heads.size()];
             ArrayList<String> nxt = head.getNext();
-            if (first) {
-                nxt.add("$");
-                first = false;
-            }
-            
+
             int i = 0;
             while (i < nxt.size()) {
                 String item = nxt.get(i);
@@ -363,7 +361,7 @@ public class Grammar {
                             }
                         }
                     }
-                    
+
                     nxt.remove(i);
                 } else {
                     i++;
@@ -433,7 +431,7 @@ public class Grammar {
                         }
                         j++;
                     }
-                    
+
                     if (isNullable) {
                         p.nullableStatus = NullableStatus.Nullable;
                         return true;
@@ -451,5 +449,5 @@ public class Grammar {
 
         return false;
     }
-    
+
 }
