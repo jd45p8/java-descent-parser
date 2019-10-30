@@ -210,8 +210,8 @@ public class Grammar {
                     firstOfItem.forEach(X -> {
                         if (first.contains(X) == false && X.compareTo("&") != 0) {
                             if (symbolTools.isSymbolOf(X, this)) {
-                                if (!visited[terminalSymbols.indexOf(X)]) {
-                                    visited[terminalSymbols.indexOf(X)] = true;
+                                if (!visited[nonTerminals.indexOf(X)]) {
+                                    visited[nonTerminals.indexOf(X)] = true;
                                     first.add(X);
                                 }
                             } else {
