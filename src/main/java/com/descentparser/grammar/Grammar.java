@@ -131,16 +131,22 @@ public class Grammar {
         ArrayList<Head> vicesFreeHeads = new ArrayList();
 
         heads.keySet().forEach((key) -> {
-            Head head = heads.get(key);
             ArrayList<Head> temp;
-            if (Factoring.hasLeftFactoring(head)) {
-                temp = Factoring.removeLeftSideFactoring(head, nonTerminals);
-                vicesFreeHeads.addAll(temp);
-            } else if (Recursion.hasLeftRecursion(head)) {
-                temp = Recursion.removeLeftSideRecursion(head, nonTerminals);
-                vicesFreeHeads.addAll(temp);
-            } else {
-                vicesFreeHeads.add(head);
+            Queue<Head> queue = new LinkedList();
+            queue.add(heads.get(key));
+            
+            Head head;
+            while (!queue.isEmpty()) {
+                head = queue.poll();
+                if (Factoring.hasLeftFactoring(head)) {
+                    temp = Factoring.removeLeftSideFactoring(head, nonTerminals);
+                    queue.addAll(temp);
+                } else if (Recursion.hasLeftRecursion(head)) {
+                    temp = Recursion.removeLeftSideRecursion(head, nonTerminals);
+                    queue.addAll(temp);
+                } else {
+                    vicesFreeHeads.add(head);
+                }
             }
         });
 
