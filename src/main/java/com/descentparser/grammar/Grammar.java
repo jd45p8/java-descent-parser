@@ -85,60 +85,42 @@ public class Grammar {
      */
     public ArrayList<String[]> match(String str) {
 
-        String out = "";
-
-        str += "$";
-        Queue<String> strQueue = new LinkedList(Arrays.asList(str.split("")));
+        Queue<String> strQueue = new LinkedList(Arrays.asList((str + "$").split("")));
 
         Stack<String> stack = new Stack();
         stack.push("$");
         stack.push(this.nonTerminals.get(0));
 
         ArrayList<String[]> follow = new ArrayList<>();
-        follow.add(new String[]{stack.toString(), strQueue.toString(), out});
-
-        String a = strQueue.poll();
-        boolean sw = true;
-
-        int nLine = 0;
 
         while (true) {
-            follow.get(nLine)[2] = "";
+            follow.add(new String[]{stack.toString(), strQueue.toString(), ""});
 
-            String[] line = new String[3];
-            line[1] = strQueue.toString();
-            line[2] = "";
+            String a = strQueue.peek();
+            if (!a.equals("&")) {
+                String X = stack.pop();
 
-            String x = stack.pop();
+                if (X.equals("$")) {
+                    return X.equals(a) ? follow : null;
+                } else if (X.equals(a)) {
+                    strQueue.poll();
+                    a = strQueue.peek();
+                } else if (!X.equals("&")) {
+                    Production prod = this.mTable.getProduction(X, a);
 
-            if (x.equals("&")) {
-                continue;
-            }
+                    if (prod == null) {
+                        return null;
+                    }
 
-            if (x.equals("$")) {
-                sw = strQueue.isEmpty();
-                break;
-            } else if (x.equals(a)) {
-                a = strQueue.poll();
-            } else {
-                Production prod = this.mTable.getProduction(x, a);
-
-                if (prod == null) {
-                    sw = false;
-                    break;
+                    follow.get(follow.size() - 1)[2] = X + "->" + prod.alpha;;
+                    stack.addAll(Arrays.asList(StringTools.reverse(prod.alpha).split("")));
                 }
-
-                follow.get(nLine)[2] = x + "->" + prod.alpha;
-                stack.addAll(Arrays.asList(StringTools.reverse(prod.alpha).split("")));
+            } else {
+                strQueue.poll();
             }
-
-            line[0] = stack.toString();
-            follow.add(line);
-            nLine++;
         }
 
         // follow.stream().forEach((s) -> System.out.println(Arrays.toString(s)));
-        return sw ? follow : null;
     }
 
     /**
