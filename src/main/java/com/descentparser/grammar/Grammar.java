@@ -179,44 +179,49 @@ public class Grammar {
         heads.values().forEach((Head h) -> {
             ArrayList<String> first = h.getFirst();
 
-            h.getProductions().stream()
-                    .forEachOrdered((Production p) -> {
-                        int i = 0;
-                        String symbol;
-                        while (i < p.length()) {
-                            symbol = p.alpha.substring(i, i + 1);
-                            if (symbol.compareTo("&") != 0) {
-                                first.add(symbol);
-                                if (!nullable(symbol)) {
-                                    break;
-                                }
-                            }
-                            i++;
+            h.getProductions().forEach((Production p) -> {
+                int i = 0;
+                String symbol;
+                while (i < p.length()) {
+                    symbol = p.alpha.substring(i, i + 1);
+                    if (symbol.compareTo("&") != 0) {
+                        first.add(symbol);
+                        if (!nullable(symbol)) {
+                            break;
                         }
-                        if (i == p.length()) {
-                            first.add("&");
-                        }
-                    });
+                    }
+                    i++;
+                }
+            });
         });
 
         heads.values().forEach(head -> {
             ArrayList<String> first = head.getFirst();
+            boolean visited[] = new boolean[terminalSymbols.size()];
             int i = 0;
             while (i < first.size()) {
                 String item = first.get(i);
                 if (!symbolTools.isTerminal(item)) {
                     ArrayList<String> firstOfItem = heads.get(item).getFirst();
-
                     firstOfItem.forEach(X -> {
-                        if (first.contains(X) == false) {
-                            first.add(X);
+                        if (first.contains(X) == false && X.compareTo("&") != 0) {
+                            if (symbolTools.isSymbolOf(X, this)) {
+                                if (!visited[terminalSymbols.indexOf(X)]) {
+                                    visited[terminalSymbols.indexOf(X)] = true;
+                                    first.add(X);
+                                }
+                            } else {
+                                first.add(X);
+                            }
                         }
                     });
-
                     first.remove(i);
                 } else {
                     i++;
                 }
+            }
+            if (nullable(head)) {
+                first.add("&");
             }
         });
     }
@@ -384,7 +389,7 @@ public class Grammar {
                 } else {
                     throw new NullPointerException("Simbol " + alpha.charAt(i) + " not found.");
                 }
-            } else {
+            } else if (alpha.charAt(i) != '&') {
                 return false;
             }
             i++;
@@ -435,10 +440,13 @@ public class Grammar {
                 case Calculating:
                     break;
                 default:
-                    return p.nullableStatus == NullableStatus.Nullable;
+                    if (p.nullableStatus == NullableStatus.Nullable) {
+                        return true;
+                    }
             }
             i++;
         }
+
         return false;
     }
 

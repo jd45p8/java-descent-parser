@@ -273,6 +273,9 @@
           <Font name="Tahoma" size="12" style="0"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="testStrFocusGained"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="analize1">
       <Properties>

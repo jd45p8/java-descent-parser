@@ -159,6 +159,11 @@ public class GUI extends javax.swing.JFrame {
         }
 
         testStr.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        testStr.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                testStrFocusGained(evt);
+            }
+        });
 
         analize1.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         analize1.setText("Reconocer");
@@ -402,6 +407,10 @@ public class GUI extends javax.swing.JFrame {
             noticeField.setText("Cadena no reconocida.");
         }
     }//GEN-LAST:event_analize1ActionPerformed
+
+    private void testStrFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_testStrFocusGained
+        noticeField.setText("");
+    }//GEN-LAST:event_testStrFocusGained
 
     /**
      * @param args the command line arguments
